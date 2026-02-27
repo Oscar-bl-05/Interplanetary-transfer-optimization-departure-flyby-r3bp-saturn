@@ -1,30 +1,13 @@
-import numpy as np
-
-
-
-# Parámetros
-mu_sun = int(1.32712440018e11) # km3/s2
-mu_earth = int(3.986004418e5) # km3/s2
-mu_saturn = int(3.7931187e7) # km2/s2
-
-R_orb_Earth = 149600000 #km
-R_orb_Saturn = 1434000000 #km
-T_orb_Earth = int(3.156e7) #s
-
+from cts import *
 
 # Posición del planeta (A)
 def R(t):
-    frec = 2*np.pi/T_orb_Earth
-    
-    x_pos = R_orb_Earth*np.cos(frec*t)
-    y_pos = R_orb_Earth*np.sin(frec*t)
+    x_pos = R_orb_A*np.cos(frec*t)
+    y_pos = R_orb_A*np.sin(frec*t)
     #devuelve la posición en x e y como lista
     return [x_pos,y_pos]
 
-    
-
 #función F
-
 def F(t, Y):
 
     FF = np.zeros_like(Y)        # inicializa FF de manera que sea un array con el mismo numero de componentes que Y, poniendo todas las componentes =0 de entrada
