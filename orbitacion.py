@@ -1,9 +1,19 @@
-from cts import *
+import numpy as np
+import time
+from scipy.integrate import solve_ivp
+import cts
+import IC
+import analitical
+
+
+nstep = 200 #mas steps para mayor precision
+tola = 1e-14
+tolr = 1e-12
 
 # Posición del planeta (A)
 def R(t):
-    x_pos = R_orb_A*np.cos(frec*t)
-    y_pos = R_orb_A*np.sin(frec*t)
+    x_pos = cts.R_orb_A*np.cos(cts.frec*t)
+    y_pos = cts.R_orb_A*np.sin(cts.frec*t)
     #devuelve la posición en x e y como lista
     return [x_pos,y_pos]
 
@@ -12,7 +22,7 @@ def F(t, Y):
 
     FF = np.zeros_like(Y)        # inicializa FF de manera que sea un array con el mismo numero de componentes que Y, poniendo todas las componentes =0 de entrada
     r = np.sqrt(Y[0]**2+Y[1]**2)
-    mu_r3 = -mu_sun/(r*r*r)
+    mu_r3 = -cts.mu_sun/(r*r*r)
     [Rt_x, Rt_y] = R(t) # obtiene la posición del planeta
     Rt = np.sqrt(Rt_x*Rt_x+ Rt_y*Rt_y)
     Rt_3 = 1/(Rt*Rt*Rt)
@@ -24,9 +34,23 @@ def F(t, Y):
 
     FF[0] = Y[2]
     FF[1] = Y[3]
-    FF[2] = (-Y[0]*mu_r3) - mu_earth*(rel_pos_x*rel_pos_mod_3 + Rt_x*Rt_3)
-    FF[3] = (-Y[1]*mu_r3) - mu_earth*(rel_pos_y*rel_pos_mod_3 + Rt_y*Rt_3)
+    FF[2] = (-Y[0]*mu_r3) - cts.mu_earth*(rel_pos_x*rel_pos_mod_3 + Rt_x*Rt_3)
+    FF[3] = (-Y[1]*mu_r3) - cts.mu_earth*(rel_pos_y*rel_pos_mod_3 + Rt_y*Rt_3)
 
     return FF
 
 #vector Y: x,y,v_x,v_y
+
+t1 = time.time()
+
+t0 = 0
+tf = analitical.T_transfer
+
+dt = (tf-t0)/nstep
+
+t = np.linspace(t0,tf,nstep+1, endpoint = True) 
+sol = solve_ivp(F, (t0,tf), IC.Y0, t_eval=t, method='DOP853', atol=tola, rtol=tolr)   
+
+Y = sol.y
+t2 = time.time()        
+print('tiempo de ejec. =',t2-t1)
