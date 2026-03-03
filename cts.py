@@ -21,7 +21,11 @@ v0_mod = np.sqrt(mu_earth / rho0)
 theta0 = np.deg2rad(-90)
 
 # Cts 5.1(Parámetros de integración)
-coc = R_orb_B/(R_orb_A*(R_orb_A+R_orb_B))
-sec = mu_sun/R_orb_A
-deltaV_1H = np.sqrt(2*mu_sun*coc) - np.sqrt(sec)
+coc1 = R_orb_B/(R_orb_A*(R_orb_A+R_orb_B))
+coc2 = R_orb_A/(R_orb_B*(R_orb_A+R_orb_B))
+
+deltaV_1H = np.sqrt(2*mu_sun*coc1) - np.sqrt(mu_sun/R_orb_A)
 deltaV_ignI = np.sqrt(deltaV_1H*deltaV_1H + 2*mu_earth/rho0)
+
+deltaV_2H = np.sqrt((mu_sun/R_orb_B)) - np.sqrt(2*mu_sun*coc2)
+deltaV_finI = abs(deltaV_2H) # Not sure
