@@ -1,61 +1,68 @@
 # Earth–Saturn Transfer Optimization in Python
 
-Numerical optimization of an interplanetary transfer from **Earth** to the **Saturn orbital radius**, targeting a **Lagrange-point-compatible heliocentric orbit** using the **restricted three-body approximation**.
+Numerical optimization of an interplanetary transfer from **Earth** to the **Saturn orbital radius**, based on the **restricted three-body approximation** and implemented in **Python**.
 
-This project studies and compares two transfer strategies:
+This project analyzes and compares two transfer strategies:
 
 - **Case I** — direct escape and final insertion
 - **Case II** — lower initial escape energy plus an additional **Earth flyby** after one heliocentric revolution
 
-The goal is simple: **minimize total \(\Delta v\)** while still reaching the target orbit.
+The main objective is to determine which strategy minimizes the **total mission cost in $\Delta v$**.
 
 ---
 
 ## Overview
 
-The spacecraft starts in a circular orbit around **Earth**, in the same plane as the Sun–Earth–Saturn system. From there, the trajectory is propagated in a **heliocentric inertial frame**, while continuously accounting for:
+The spacecraft starts from a circular orbit around **Earth**, in the same plane as the Sun–Earth–Saturn system. From there, the trajectory is propagated in a **heliocentric inertial frame**, continuously accounting for:
 
 - the gravitational attraction of the **Sun**
 - the gravitational attraction of **Earth**
-- neglecting Saturn's gravity during transfer, as required by the formulation
+- a target orbit located at **Saturn’s heliocentric radius**
 
-The destination is not Saturn itself, but a point at the same heliocentric radius as Saturn, compatible with the orbital radius of **L4/L5**.
+Saturn’s gravity is neglected during transfer, following the formulation of the problem.
 
-This is not a patched-conics toy model. The dynamics are integrated numerically under the **restricted three-body formulation**, which makes the transfer analysis more realistic and more interesting.
+The destination is not Saturn itself, but a point on a circular heliocentric orbit with the same radius as Saturn, compatible with the orbital radius of **$L_4$ / $L_5$**.
+
+This makes the project a numerical astrodynamics study rather than a simple patched-conics exercise.
 
 ---
 
 ## Mission Case
 
-**Departure planet:** Earth  
-**Target orbital radius:** Saturn  
-**Language:** Python  
-**Focus:** transfer optimization, numerical propagation, and trajectory analysis
+- **Departure planet:** Earth
+- **Target orbital radius:** Saturn
+- **Language:** Python
+- **Core topics:** orbital mechanics, trajectory propagation, transfer optimization, numerical integration
 
 ---
 
 ## Problem Statement
 
-The project compares two mission architectures:
+The project compares two mission architectures.
 
 ### Case I — Direct Transfer
-A first impulsive maneuver provides enough energy for escape and transfer toward Saturn’s orbital radius.  
+
+A first impulsive maneuver provides enough energy for escape and transfer toward Saturn’s orbital radius.
+
 Once the spacecraft reaches the target heliocentric distance, a second impulsive maneuver is applied to match the velocity of the destination orbit.
 
-\[
-\Delta v_{\text{tot}}^{(I)} = |\Delta v_{\text{ign}}^{(I)}| + |\Delta v_{\text{fin}}^{(I)}|
-\]
+$$
+\Delta v_{\text{tot}}^{(I)} = \left|\Delta v_{\text{ign}}^{(I)}\right| + \left|\Delta v_{\text{fin}}^{(I)}\right|
+$$
 
 ### Case II — Transfer with Earth Flyby
-The first impulsive maneuver is smaller than in Case I, but still enough to escape Earth.  
+
+The first impulsive maneuver is smaller than in Case I, but still sufficient to escape Earth.
+
 After one revolution around the Sun, the spacecraft returns near Earth and performs a **gravitational assist** during a second pass through Earth’s sphere of influence. A final insertion maneuver is then applied at the target orbit.
 
-\[
-\Delta v_{\text{tot}}^{(II)} = |\Delta v_{\text{ign}}^{(II)}| + |\Delta v_{\text{fin}}^{(II)}|
-\]
+$$
+\Delta v_{\text{tot}}^{(II)} = \left|\Delta v_{\text{ign}}^{(II)}\right| + \left|\Delta v_{\text{fin}}^{(II)}\right|
+$$
 
 ### Main Objective
-Determine which strategy gives the **lowest total \(\Delta v\)** for the **Earth–Saturn** mission scenario.
+
+Find the trajectory that minimizes total mission cost and compare both mission architectures for the **Earth–Saturn** scenario.
 
 ---
 
@@ -65,43 +72,42 @@ The spacecraft motion is modeled in the **restricted three-body approximation** 
 
 State vector:
 
-\[
-Y = [x, y, v_x, v_y]
-\]
+$$
+\mathbf{Y} = [x,\ y,\ v_x,\ v_y]
+$$
 
-The equations of motion are:
+Equations of motion:
 
-\[
+$$
 \dot{\mathbf{r}} = \mathbf{v}
-\]
+$$
 
-\[
+$$
 \dot{\mathbf{v}} =
--\mu \frac{\mathbf{r}}{r^3}
--\mu_A
-\left(
-\frac{\mathbf{r} - \mathbf{R}(t)}{|\mathbf{r} - \mathbf{R}(t)|^3}
+-\frac{\mu}{r^3}\mathbf{r}
+-\mu_A \left(
+\frac{\mathbf{r} - \mathbf{R}(t)}{\lVert \mathbf{r} - \mathbf{R}(t) \rVert^3}
 +
 \frac{\mathbf{R}(t)}{R(t)^3}
 \right)
-\]
+$$
 
 where:
 
-- \(\mu\) is the gravitational parameter of the **Sun**
-- \(\mu_A\) is the gravitational parameter of **Earth**
-- \(\mathbf{R}(t)\) is the heliocentric position of Earth, approximated as a circular orbit
+- $\mu$ is the gravitational parameter of the **Sun**
+- $\mu_A$ is the gravitational parameter of **Earth**
+- $\mathbf{R}(t)$ is the heliocentric position of Earth, approximated as a circular orbit
 
-The planetary orbit is modeled as:
+Earth’s heliocentric orbit is modeled as:
 
-\[
-\mathbf{R}(t) = R_A
-\left[
-\cos\left(\frac{2\pi t}{T_A}\right)\mathbf{i}
-+
-\sin\left(\frac{2\pi t}{T_A}\right)\mathbf{j}
-\right]
-\]
+$$
+\mathbf{R}(t) =
+R_A
+\begin{bmatrix}
+\cos\left(\frac{2\pi t}{T_A}\right) \\
+\sin\left(\frac{2\pi t}{T_A}\right)
+\end{bmatrix}
+$$
 
 This formulation keeps the dynamics continuous and avoids switching between local and heliocentric conics.
 
@@ -111,87 +117,96 @@ This formulation keeps the dynamics continuous and avoids switching between loca
 
 The spacecraft starts in a circular orbit around Earth at:
 
-\[
-\rho_0 = 1.1 \times R_{\text{Earth}}
-\]
+$$
+\rho_0 = 1.1\,R_{\text{Earth}}
+$$
 
-The initial state is defined by two optimization variables:
+The initial state is defined through two key design variables:
 
-- `theta` — angular position in the initial Earth-centered circular orbit
-- `dv_ign` — magnitude of the first impulsive maneuver
+- `theta` — angular position of the spacecraft in the initial Earth-centered parking orbit
+- `dv_ign` — magnitude of the initial impulsive maneuver
 
-For the Earth-to-Saturn transfer, the useful scan range is chosen for an **outer-planet transfer**, so `theta` is typically explored in:
+For the Earth-to-Saturn transfer, the useful search region corresponds to an **outer-planet transfer**, so `theta` is typically explored in:
 
-\[
+$$
 -\frac{\pi}{2} < \theta < 0
-\]
+$$
 
-The initial ignition must satisfy the escape condition:
+The initial ignition must satisfy the Earth escape condition:
 
-\[
+$$
 \Delta v_{\text{ign}} > (\sqrt{2} - 1)\sqrt{\frac{\mu_A}{\rho_0}}
-\]
+$$
 
 ---
 
-## What This Repository Does
+## Project Goals
 
-This repository provides a Python workflow to:
+This repository is built to:
 
-- define the **Earth–Saturn** physical parameters
-- propagate trajectories numerically with `solve_ivp`
-- estimate first-guess transfer parameters from **Hohmann-based analytical approximations**
-- scan families of initial conditions
-- detect when the trajectory first reaches **Saturn’s heliocentric radius**
-- compute the required final insertion maneuver
-- evaluate total mission cost in terms of **\(\Delta v\)**
+- model the **Earth–Saturn transfer problem** in Python
+- propagate trajectories numerically using the restricted three-body equations
+- estimate first guesses from analytical transfer approximations
+- scan candidate initial conditions
+- detect valid crossings of Saturn’s heliocentric radius
+- compute the final insertion maneuver
+- evaluate the total $\Delta v$ cost
 - refine the search around promising solutions
 - compare **Case I** and **Case II**
-- generate plots and trajectory visualizations
+- visualize trajectories and mission metrics
 
 ---
 
 ## Methodology
 
 ### 1. Analytical First Guess
-Before brute-force scanning, analytical estimates are used to define meaningful search ranges:
 
-- Hohmann-like estimate for `dv_ign`
-- Hohmann-like estimate for `dv_fin`
-- flyby-compatible transfer time estimate
-- estimated launch angle from hyperbolic deflection geometry
+Before running numerical scans, analytical approximations are used to define meaningful search windows:
 
-These values are not the final answer. They are just a smart way to avoid scanning nonsense.
+- Hohmann-like estimate for initial ignition
+- Hohmann-like estimate for final insertion
+- approximate transfer time
+- launch-angle estimates based on transfer geometry
+
+These values are not final solutions. They are used only to reduce the search space and improve efficiency.
 
 ### 2. Numerical Propagation
-Each candidate pair `(theta, dv_ign)` is integrated using a numerical ODE solver in Python.
+
+Each candidate pair `(theta, dv_ign)` is propagated numerically using a Python ODE solver such as `solve_ivp`.
 
 ### 3. Target Detection
-For every propagated trajectory, the code checks whether the spacecraft reaches:
 
-\[
-|\mathbf{r}(t)| = R_B
-\]
+For each trajectory, the code checks whether the spacecraft reaches Saturn’s heliocentric radius:
 
-where \(R_B\) is Saturn’s mean heliocentric orbital radius.
+$$
+\lVert \mathbf{r}(t) \rVert = R_B
+$$
 
-If the trajectory never reaches that distance, it is discarded.
+where $R_B$ is Saturn’s mean heliocentric orbital radius.
+
+If the trajectory never reaches this distance, it is discarded.
 
 ### 4. Final Insertion Cost
-At the first valid crossing of Saturn’s orbital radius, the final velocity correction is computed to match the target circular heliocentric motion:
 
-\[
+At the first valid crossing of Saturn’s orbital radius, the velocity correction needed to match the target circular heliocentric orbit is computed.
+
+$$
 \Delta \mathbf{v}_{\text{fin}} = \mathbf{V}_L - \mathbf{v}(t_{\text{fin}})
-\]
+$$
+
+where:
+
+- $\mathbf{v}(t_{\text{fin}})$ is the propagated spacecraft velocity at arrival
+- $\mathbf{V}_L$ is the target circular heliocentric velocity at Saturn’s orbital radius
 
 ### 5. Optimization
-The best trajectory is the one with minimum total cost:
 
-\[
-\Delta v_{\text{tot}} = |\Delta v_{\text{ign}}| + |\Delta v_{\text{fin}}|
-\]
+The best solution is the one that minimizes:
+
+$$
+\Delta v_{\text{tot}} = \left|\Delta v_{\text{ign}}\right| + \left|\Delta v_{\text{fin}}\right|
+$$
 
 ### 6. Refinement
-After a coarse scan, the search is repeated with tighter parameter ranges around the best candidate.
 
----
+After a coarse scan, the search is repeated over a narrower region around the best candidate in order to obtain a more accurate optimum.
