@@ -19,9 +19,5 @@ frec = 2*math.pi/T_orb_A
 R_orb_B = int(1.4267254e9 )   # km (radio orbital medio Saturno)
 T_orb_B = int(9.29e8)         # s
 
-# Órbita inicial LEO
-rho0 = Rt + 400          # km (400 km de altitud)
-v0_mod = math.sqrt(mu_earth / rho0)
-theta0 = -90 * deg2rad
 
 

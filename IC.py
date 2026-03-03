@@ -2,19 +2,24 @@
 import cts
 import numpy as np
 
+# Órbita inicial LEO
+rho0 = cts.Rt + 400          # km (400 km de altitud)
+v0_mod = np.sqrt(cts.mu_earth / rho0)
+theta0 = -90 * cts.deg2rad
+
 # Posición heliocéntrica inicial (km)
 r0 = np.array([
-    cts.R_orb_A + cts.rho0*np.cos(cts.theta0),
-    cts.rho0*np.sin(cts.theta0)
+    cts.R_orb_A + rho0*np.cos(theta0),
+    rho0*np.sin(theta0)
 ])
 
 # Velocidad relativa a la Tierra (km/s)
 t_hat = np.array([
-    -np.sin(cts.theta0),
-     np.cos(cts.theta0)
+    -np.sin(theta0),
+     np.cos(theta0)
 ])
 
-v_rel = cts.v0_mod * t_hat
+v_rel = v0_mod * t_hat
 
 # Velocidad orbital de la Tierra alrededor del Sol (km/s)
 v_earth_0 = np.array([
