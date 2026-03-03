@@ -24,24 +24,4 @@ rho0 = Rt + 400          # km (400 km de altitud)
 v0_mod = math.sqrt(mu_earth / rho0)
 theta0 = -90 * deg2rad
 
-# Cts 5.1(Parámetros de integración)
-coc = R_orb_B/(R_orb_A*(R_orb_A+R_orb_B))
-sec = mu_sun/R_orb_A
-deltaV_1H = math.sqrt(2*mu_sun*coc) - math.sqrt(sec)
-deltaV_ignI = math.sqrt(deltaV_1H*deltaV_1H + 2*mu_earth/rho0)
-deltaV_1H = np.sqrt(2*mu_sun*coc) - np.sqrt(mu_sun/R_orb_A)
-deltaV_ignI = np.sqrt(deltaV_1H*deltaV_1H + 2*mu_earth/rho0)
-
-coc = R_orb_A/(R_orb_B*(R_orb_A+R_orb_B))
-deltaV_2H = np.sqrt((mu_sun/R_orb_B)) - np.sqrt(2*mu_sun*coc)
-deltaV_finI = abs(deltaV_2H) # Not sure
-
-# Theta de ignición
-# Caso I: vinf = deltaV_1H
-e = 1 + (rho0*deltaV_1H*deltaV_1H)/mu_earth
-theta_0I = -2 * np.arcsin(1/e)
-# Caso II: vinf esta contenido entre [0, deltaV_1H]
-e = 1 + (rho0*0.8*0.8*deltaV_1H*deltaV_1H)/mu_earth # Asumimos un vinf del 80% de deltaV_1H
-theta_0II = -2 * np.arcsin(1/e)
-
 
