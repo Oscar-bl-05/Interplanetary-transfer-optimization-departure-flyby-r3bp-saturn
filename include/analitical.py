@@ -1,5 +1,5 @@
-import cts 
-import IC
+from . import cts 
+from . import IC
 from numpy import sqrt, arcsin
 
 transfertime_safety_margin = 1.4

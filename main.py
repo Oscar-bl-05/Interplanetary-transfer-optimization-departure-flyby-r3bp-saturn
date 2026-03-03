@@ -1,10 +1,7 @@
 import numpy as np
 import time
 from scipy.integrate import solve_ivp
-import cts
-import IC
-import analitical
-
+from include import cts, analitical, IC
 
 nstep = 200 #mas steps para mayor precision
 tola = 1e-14

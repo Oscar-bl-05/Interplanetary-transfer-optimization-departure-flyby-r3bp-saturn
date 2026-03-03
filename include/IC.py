@@ -1,5 +1,5 @@
 ## INITIAL CONDITIONS ##
-import cts
+from . import cts
 import numpy as np
 
 # Órbita inicial LEO
