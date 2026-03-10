@@ -2,12 +2,13 @@ import numpy as np
 import time
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
+from include import plotter
 
 print("Initializing simulation ...")
 
-nstep = 200 #mas steps para mayor precision
-tola = 1e-14
-tolr = 1e-12
+nstep = int(8e+8) #mas steps para mayor precision
+tola = 1e-1
+tolr = 1e-2
 
 # Posición del planeta (A)
 def R(t):
@@ -55,3 +56,7 @@ sol = solve_ivp(F, (t0,tf), IC.Y0, t_eval=t, method='DOP853', atol=tola, rtol=to
 Y = sol.y
 t2 = time.time()        
 print('tiempo de ejec. =',t2-t1)
+print(sol)
+print(Y)
+
+plotter.plot2D(t, dt, Y)
