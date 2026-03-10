@@ -3,6 +3,8 @@ import time
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 
+print("Initializing simulation ...")
+
 nstep = 200 #mas steps para mayor precision
 tola = 1e-14
 tolr = 1e-12

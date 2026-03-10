@@ -6,7 +6,7 @@ deg2rad = math.pi/180
 
 # Parámetros gravitacionales (km^3/s^2)
 mu_sun = int(1.32712440018e11)
-mu_earth = int(3.986004418e5)
+mu_earth = 3.986004418e5
 mu_saturn = int(3.7931187e7)
 
 # Parámetros orbitales
