@@ -6,9 +6,9 @@ from include import plotter
 
 print("Initializing simulation ...")
 
-nstep = int(8e+8) #mas steps para mayor precision
+nstep = int(1e+4) #mas steps para mayor precision
 tola = 1e-1
-tolr = 1e-2
+tolr = 1e-8
 
 # Posición del planeta (A)
 def R(t):
@@ -57,6 +57,6 @@ Y = sol.y
 t2 = time.time()        
 print('tiempo de ejec. =',t2-t1)
 print(sol)
-print(Y)
+
 
 plotter.plot2D(t, dt, Y)
