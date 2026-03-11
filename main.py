@@ -2,10 +2,11 @@ import numpy as np
 import time
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
+from include.plotter import plotsim
 
 nstep = 200 #mas steps para mayor precision
-tola = 1e-14
-tolr = 1e-12
+tola = 1e-3
+tolr = 1e-9
 
 # Posición del planeta (A)
 def R(t):
@@ -48,8 +49,14 @@ tf = analitical.T_transfer
 dt = (tf-t0)/nstep
 
 t = np.linspace(t0,tf,nstep+1, endpoint = True) 
-sol = solve_ivp(F, (t0,tf), IC.Y0, t_eval=t, method='DOP853', atol=tola, rtol=tolr)   
 
+sol = solve_ivp(F, (t0,tf), IC.Y0, t_eval=t, method='DOP853', atol=tola, rtol=tolr)   
 Y = sol.y
 t2 = time.time()        
-print('tiempo de ejec. =',t2-t1)
+print("tiempo de ejec. =", t2 - t1)
+print("NaN:", np.isnan(sol.y).any())
+print("Inf:", np.isinf(sol.y).any())
+print("status:", sol.status)
+print("message:", sol.message)
+
+plotsim(sol, R, dt)
