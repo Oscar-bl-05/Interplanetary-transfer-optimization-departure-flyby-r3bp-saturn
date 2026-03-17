@@ -2,17 +2,18 @@ import numpy as np
 import time
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
+from include import plotter
 
 print("Initializing simulation ...")
 
-nstep = 200 #mas steps para mayor precision
-tola = 1e-14
-tolr = 1e-12
+nstep = int(1e+4) #mas steps para mayor precision
+tola = 1e-1
+tolr = 1e-4
 
-# Posición del planeta (A)
-def R(t):
-    x_pos = cts.R_orb_A*np.cos(cts.frec*t)
-    y_pos = cts.R_orb_A*np.sin(cts.frec*t)
+# Posición del planeta 
+def R(t, R_orb, frec):
+    x_pos = R_orb*np.cos(frec*t)
+    y_pos = R_orb*np.sin(frec*t)
     #devuelve la posición en x e y como lista
     return [x_pos,y_pos]
 
@@ -23,8 +24,8 @@ def F(t, Y):
     y0 = Y[0]
     y1 = Y[1]
     r = np.sqrt(y0*y0+y1*y1)
-    mu_r3 = -cts.mu_sun/(r*r*r)
-    [Rt_x, Rt_y] = R(t) # obtiene la posición del planeta
+    mu_r3 = cts.mu_sun/(r*r*r)
+    [Rt_x, Rt_y] = R(t, cts.R_orb_A, cts.frec_A) # obtiene la posición del planeta
     Rt = np.sqrt(Rt_x*Rt_x+ Rt_y*Rt_y)
     Rt_3 = 1/(Rt*Rt*Rt)
 
@@ -55,3 +56,7 @@ sol = solve_ivp(F, (t0,tf), IC.Y0, t_eval=t, method='DOP853', atol=tola, rtol=to
 Y = sol.y
 t2 = time.time()        
 print('tiempo de ejec. =',t2-t1)
+print(sol)
+
+
+plotter.plot2D(t, dt, Y, R)
