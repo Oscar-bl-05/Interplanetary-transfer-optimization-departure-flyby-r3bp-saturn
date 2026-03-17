@@ -8,12 +8,12 @@ print("Initializing simulation ...")
 
 nstep = int(1e+4) #mas steps para mayor precision
 tola = 1e-1
-tolr = 1e-8
+tolr = 1e-4
 
-# Posición del planeta (A)
-def R(t):
-    x_pos = cts.R_orb_A*np.cos(cts.frec*t)
-    y_pos = cts.R_orb_A*np.sin(cts.frec*t)
+# Posición del planeta 
+def R(t, R_orb, frec):
+    x_pos = R_orb*np.cos(frec*t)
+    y_pos = R_orb*np.sin(frec*t)
     #devuelve la posición en x e y como lista
     return [x_pos,y_pos]
 
@@ -24,8 +24,8 @@ def F(t, Y):
     y0 = Y[0]
     y1 = Y[1]
     r = np.sqrt(y0*y0+y1*y1)
-    mu_r3 = -cts.mu_sun/(r*r*r)
-    [Rt_x, Rt_y] = R(t) # obtiene la posición del planeta
+    mu_r3 = cts.mu_sun/(r*r*r)
+    [Rt_x, Rt_y] = R(t, cts.R_orb_A, cts.frec_A) # obtiene la posición del planeta
     Rt = np.sqrt(Rt_x*Rt_x+ Rt_y*Rt_y)
     Rt_3 = 1/(Rt*Rt*Rt)
 

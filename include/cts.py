@@ -12,12 +12,13 @@ mu_saturn = int(3.7931187e7)
 # Parámetros orbitales
 R_orb_A = int(1.496e8)        # km (radio orbital medio Tierra-Sol)
 T_orb_A = int(3.156e7)        # s
-Rt = 6371                # km
+R_Earth = 6371                # km
 
-frec = 2*math.pi/T_orb_A
+frec_A = 2*math.pi/T_orb_A
 
-R_orb_B = int(1.4267254e9 )   # km (radio orbital medio Saturno)
+R_orb_B = int(1.4267254e9)    # km (radio orbital medio Saturno)
 T_orb_B = int(9.29e8)         # s
+frec_B = 2*math.pi/T_orb_B
 
 
 

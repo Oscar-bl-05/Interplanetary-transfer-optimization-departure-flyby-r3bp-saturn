@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from . import cts
 
 def plot2D(t, dt, Y, R_f):
 
@@ -23,9 +24,13 @@ def plot2D(t, dt, Y, R_f):
         ax.set_title('Simulación Órbita')
         ax.text(0.02, 0.95, f'time = {t[i]:.1f} s', transform=ax.transAxes)
 
-        # plottear tierra y sol
-        [Rt_x, Rt_y] = R_f(i)
-        ax.plot(Rt_x, Rt_y, 'o', markersize=6, color='blue', label='Earth')
+        # plottear tierra, sol saturno 
+        [RtA_x, RtA_y] = R_f(i*dt, cts.R_orb_A, cts.frec_A)
+        ax.plot(RtA_x, RtA_y, 'o', markersize=6, color='blue', label='Tierra')
+
+        [RtB_x, RtB_y] = R_f(i*dt, cts.R_orb_B, cts.frec_B)
+        ax.plot(RtB_x, RtB_y, 'o', markersize=6, color='brown', label='Saturno')
+
 
         ax.plot(0, 0, 'o', markersize=8, color='orange', label='Sol')
 
