@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-def plot2D(t, dt, Y):
+def plot2D(t, dt, Y, R_f):
 
     x1 = Y[0, :]
     y1 = Y[1, :]
@@ -15,20 +15,23 @@ def plot2D(t, dt, Y):
         ax.clear()
         ax.grid()
 
-        #ax.plot_surface(x2, y2, color='yellow', alpha=0.4)
-
-        ax.plot(x1[:i], y1[:i], '-', markersize=1, color='red')
-        ax.plot(x1[i], y1[i], 'o', markersize=5, color="red")
+        ax.plot(x1[:i], y1[:i], '-', markersize=1, color='red', label="nave")
+        ax.plot(x1[i], y1[i], 'o', markersize=5, color='red')
 
         ax.set_aspect('equal', adjustable='box')
 
-        time_template = 'time = %.01fs'  # prints running simulation time
-        time_text = ax.text(0.05, 0.9, 0.05, '', transform=ax.transAxes)
+        ax.set_title('Simulación Órbita')
+        ax.text(0.02, 0.95, f'time = {t[i]:.1f} s', transform=ax.transAxes)
 
-        time_text.set_text(time_template % (i*dt))
-        return time_text
+        # plottear tierra y sol
+        [Rt_x, Rt_y] = R_f(i)
+        ax.plot(Rt_x, Rt_y, 'o', markersize=6, color='blue', label='Earth')
+
+        ax.plot(0, 0, 'o', markersize=8, color='orange', label='Sol')
+
+        return []
 
     # Animacion de la evolucion temporal
-    ani = animation.FuncAnimation(fig, animate, np.arange(len(t)), interval=1)
+    ani = animation.FuncAnimation(fig, animate, frames=len(t), interval=50) # np.arange(len(t)),
 
     plt.show()

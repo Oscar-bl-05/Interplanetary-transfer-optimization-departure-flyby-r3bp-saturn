@@ -59,4 +59,4 @@ print('tiempo de ejec. =',t2-t1)
 print(sol)
 
 
-plotter.plot2D(t, dt, Y)
+plotter.plot2D(t, dt, Y, R)
