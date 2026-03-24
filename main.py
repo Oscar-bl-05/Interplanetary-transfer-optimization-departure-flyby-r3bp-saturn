@@ -4,7 +4,7 @@ from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 from include import plotter
 
-print("Initializing simulation ...")
+print("Initializing simulation, pls wait ...")
 
 nstep = int(1e+4) #mas steps para mayor precision
 tola = 1e-1
@@ -33,6 +33,7 @@ def F(t, Y):
     rel_pos_y = y1-Rt_y
     rel_pos_mod = np.sqrt(rel_pos_x*rel_pos_x+rel_pos_y*rel_pos_y)
     rel_pos_mod_3 = 1/(rel_pos_mod*rel_pos_mod*rel_pos_mod)
+
 
     FF[0] = Y[2]
     FF[1] = Y[3]
