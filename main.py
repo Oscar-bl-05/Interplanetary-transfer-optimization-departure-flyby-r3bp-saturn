@@ -51,7 +51,9 @@ tf = analitical.T_transfer
 dt = (tf-t0)/nstep
 
 t = np.linspace(t0,tf,nstep+1, endpoint = True) 
-sol = solve_ivp(F, (t0,tf), IC.Y0, t_eval=t, method='DOP853', atol=tola, rtol=tolr)   
+
+Y0 = IC.Y0 + np.array([0,0,0,analitical.deltaV_ignI])
+sol = solve_ivp(F, (t0,tf), Y0, t_eval=t, method='DOP853', atol=tola, rtol=tolr)   
 
 Y = sol.y
 t2 = time.time()        

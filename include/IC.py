@@ -31,8 +31,7 @@ v_earth_0 = np.array([
 v0 = v_rel + v_earth_0
 
 # Función de variación de velocidad (debemos aumentar por lo que usaremos el +)
-
-
+    #creo que está en analitical
 
 # Y inicial
 #vector Y: x,y,v_x,v_y

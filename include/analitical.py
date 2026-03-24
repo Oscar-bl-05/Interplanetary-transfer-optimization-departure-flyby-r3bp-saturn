@@ -7,11 +7,8 @@ T_transfer = transfertime_safety_margin * 3 * cts.pi * sqrt((cts.R_orb_A + cts.R
 
 # Cts 5.1(Parámetros de integración)
 coc = cts.R_orb_B/(cts.R_orb_A*(cts.R_orb_A+cts.R_orb_B))
-sec = cts.mu_sun/cts.R_orb_A
-deltaV_1H = sqrt(2*cts.mu_sun*coc) - sqrt(sec)
-deltaV_ignI = sqrt(deltaV_1H*deltaV_1H + 2*cts.mu_earth/IC.rho0)
 deltaV_1H = sqrt(2*cts.mu_sun*coc) - sqrt(cts.mu_sun/cts.R_orb_A)
-deltaV_ignI = sqrt(deltaV_1H*deltaV_1H + 2*cts.mu_earth/IC.rho0)
+deltaV_ignI = sqrt(deltaV_1H*deltaV_1H + 2*cts.mu_earth/IC.rho0) - sqrt(cts.mu_earth/IC.rho0)
 
 coc = cts.R_orb_A/(cts.R_orb_B*(cts.R_orb_A+cts.R_orb_B))
 deltaV_2H = sqrt((cts.mu_sun/cts.R_orb_B)) - sqrt(2*cts.mu_sun*coc)
