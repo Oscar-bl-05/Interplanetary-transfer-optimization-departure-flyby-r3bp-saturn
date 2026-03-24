@@ -17,12 +17,12 @@ def F(t, Y):
 
     Rx, Ry = R(t, cts.R_orb_A, cts.frec_A)
     Rm = np.hypot(Rx, Ry)
-    Rm3 = 1.0 / (Rm**3)
+    Rm3 = 1.0 / (Rm*Rm*Rm)
 
     dx = x - Rx
     dy = y - Ry
     dm = np.hypot(dx, dy)
-    dm3 = 1.0 / (dm**3)
+    dm3 = 1.0 / (dm*dm*dm)
 
     ax = (-x * mu_r3) - cts.mu_earth * (dx * dm3 + Rx * Rm3)
     ay = (-y * mu_r3) - cts.mu_earth * (dy * dm3 + Ry * Rm3)
