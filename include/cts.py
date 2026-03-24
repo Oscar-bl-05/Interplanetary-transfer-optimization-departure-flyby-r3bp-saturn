@@ -1,8 +1,6 @@
-import math
+from math import pi
 
-pi = math.pi
-
-deg2rad = math.pi/180
+deg2rad = pi/180
 
 # Parámetros gravitacionales (km^3/s^2)
 mu_sun = int(1.32712440018e11)
@@ -14,11 +12,11 @@ R_orb_A = int(1.496e8)        # km (radio orbital medio Tierra-Sol)
 T_orb_A = int(3.156e7)        # s
 R_Earth = 6371                # km
 
-frec_A = 2*math.pi/T_orb_A
+frec_A = 2*pi/T_orb_A
 
 R_orb_B = int(1.4267254e9)    # km (radio orbital medio Saturno)
 T_orb_B = int(9.29e8)         # s
-frec_B = 2*math.pi/T_orb_B
+frec_B = 2*pi/T_orb_B
 
 
 
