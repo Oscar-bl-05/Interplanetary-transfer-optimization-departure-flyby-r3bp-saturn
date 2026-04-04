@@ -5,6 +5,7 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
+k = 1.10 # asegurar que llega a R_B
 
 nstep = int(1.6e2)
 atol = np.array([1e0, 1e0, 1e-4, 1e-4])  # km, km, km/s, km/s
@@ -40,8 +41,12 @@ tf = float(analitical.T_transfer)
 dt = (tf - t0) / nstep
 t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
-V_ign = analitical.deltaV_ignI * IC.t_hat_theta
+V_ign = k * analitical.deltaV_ignI * IC.t_hat_theta # habria que optimizar
 Y0 = IC.Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+
+print("T_transfer (years) =", tf / (365.25 * 24 * 3600))
+print("deltaV_ignI (km/s) =", analitical.deltaV_ignI)
+print("deltaV_1H   (km/s) =", analitical.deltaV_1H)
 
 t1 = time.time()
 
