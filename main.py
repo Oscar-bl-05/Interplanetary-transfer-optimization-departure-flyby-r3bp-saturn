@@ -58,4 +58,8 @@ r = np.hypot(sol.y[0], sol.y[1])
 print("runtime =", t2 - t1)
 print("r_max =", r.max(), "target =", cts.R_orb_B)
 
+# Solución de referencia para errores (paso 6)
+sol_ref = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
+
+plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 plotter.plot2D(sol.t, dt, sol.y, R)

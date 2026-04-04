@@ -24,11 +24,11 @@ def plot2D(t, dt, Y, R_f):
         ax.set_title('Simulación Órbita')
         ax.text(0.02, 0.95, f'time = {t[i]:.1f} s', transform=ax.transAxes)
 
-        # plottear tierra, sol saturno 
+        # plottear tierra, saturno y sol 
         [RtA_x, RtA_y] = R_f(i*dt, cts.R_orb_A, cts.frec_A)
         ax.plot(RtA_x, RtA_y, 'o', markersize=6, color='blue', label='Tierra')
 
-        [RtB_x, RtB_y] = R_f(i*dt, cts.R_orb_B, cts.frec_B)
+        [RtB_x, RtB_y] = R_f(i*dt, -cts.R_orb_B, cts.frec_B)
         ax.plot(RtB_x, RtB_y, 'o', markersize=6, color='brown', label='Saturno')
 
 
@@ -40,3 +40,29 @@ def plot2D(t, dt, Y, R_f):
     ani = animation.FuncAnimation(fig, animate, frames=len(t), interval=50) # np.arange(len(t)),
 
     plt.show()
+
+def plot_solution(t, Y, Y_ref):
+        
+    t_yr = t / (365.25 * 24 * 3600)
+
+    var_labels = ['$Y_0 = x$', '$Y_1 = y$', '$Y_2 = v_x$', '$Y_3 = v_y$']
+    var_units  = ['km', 'km', 'km/s', 'km/s']
+    err_labels = ['Error on $Y_0 = x$', 'Error on $Y_1 = y$', 'Error on $Y_2 = v_x$', 'Error on $Y_3 = v_y$']
+
+    # Variables
+    for i in range(4):
+        plt.figure()
+        plt.plot(t_yr, Y[i, :], color='black', label=var_labels[i])
+        plt.xlabel('time (years)')
+        plt.ylabel(var_units[i])
+        plt.title('Solution for the dynamical variable ' + var_labels[i], fontsize=14, color='gray')
+        plt.legend()
+
+    # Errores
+    for i in range(4):
+        plt.figure()
+        plt.plot(t_yr, Y[i, :] - Y_ref[i, :], color='black', label=err_labels[i])
+        plt.xlabel('time (years)')
+        plt.ylabel(var_units[i])
+        plt.title('Error on the solution for ' + var_labels[i], fontsize=12, color='gray')
+        plt.legend()
