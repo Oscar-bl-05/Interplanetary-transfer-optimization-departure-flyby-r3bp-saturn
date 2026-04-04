@@ -45,12 +45,7 @@ Y0 = IC.Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
 t1 = time.time()
 
-sol = solve_ivp(
-    F, (t0, tf), Y0,
-    t_eval=t,
-    method="DOP853",
-    atol=atol, rtol=rtol
-)
+sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
 
 t2 = time.time()
 

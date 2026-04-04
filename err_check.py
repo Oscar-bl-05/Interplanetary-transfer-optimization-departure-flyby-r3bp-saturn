@@ -43,16 +43,7 @@ def hit_state(atol, rtol):
     V_ign = k_test * analitical.deltaV_ignI * IC.t_hat_theta
     Y0 = IC.Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
-    sol = solve_ivp(
-        F, (t0, tf), Y0,
-        method="DOP853",
-        atol=atol, rtol=rtol,
-        events=reach_RB,
-        max_step=dt
-    )
-
-    if len(sol.t_events[0]) == 0:
-        return None
+    sol = solve_ivp(F, (t0, tf), Y0, method="DOP853", atol=atol, rtol=rtol, events=reach_RB, max_step=dt)
 
     return sol.t_events[0][0], sol.y_events[0][0]
 
@@ -88,10 +79,7 @@ for atol, rtol in candidates:
     vel_err_ms = 1000.0 * np.hypot(y[2] - y_ref[2], y[3] - y_ref[3])
 
     ok = (pos_err_km <= 1000.0) and (vel_err_ms <= 10.0)
-    print("atol", atol, "rtol", rtol,
-          "| pos_err_km =", pos_err_km,
-          "| vel_err_m/s =", vel_err_ms,
-          "| OK =", ok)
+    print("atol", atol, " and rtol", rtol, " pos_err_km =", pos_err_km, "| vel_err_m/s =", vel_err_ms, "| OK =", ok)
 
     if ok:
         best = (atol, rtol)
