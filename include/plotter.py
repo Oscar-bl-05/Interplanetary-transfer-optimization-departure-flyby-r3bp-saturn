@@ -28,7 +28,7 @@ def plot2D(t, dt, Y, R_f):
         [RtA_x, RtA_y] = R_f(i*dt, cts.R_orb_A, cts.frec_A)
         ax.plot(RtA_x, RtA_y, 'o', markersize=6, color='blue', label='Tierra')
 
-        [RtB_x, RtB_y] = R_f(i*dt, -cts.R_orb_B, cts.frec_B)
+        [RtB_x, RtB_y] = R_f(i*dt, cts.R_orb_B, cts.frec_B)
         ax.plot(RtB_x, RtB_y, 'o', markersize=6, color='brown', label='Saturno')
 
 
