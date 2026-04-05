@@ -4,61 +4,53 @@ from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 from include import plotter
 
-print("Initializing simulation ...")
+print("Initializing simulation, pls wait ...")
 
-nstep = int(1e+4) #mas steps para mayor precision
-tola = 1e-1
-tolr = 1e-4
+nstep = int(1.6e2)
+atol = np.array([1e0, 1e0, 1e-4, 1e-4])  # km, km, km/s, km/s
+rtol = 1e-6
 
-# Posición del planeta 
 def R(t, R_orb, frec):
-    x_pos = R_orb*np.cos(frec*t)
-    y_pos = R_orb*np.sin(frec*t)
-    #devuelve la posición en x e y como lista
-    return [x_pos,y_pos]
+    return [
+        R_orb * np.cos(frec * t - IC.delta0),
+        R_orb * np.sin(frec * t - IC.delta0),
+    ]
 
-#función F
 def F(t, Y):
+    x, y, vx, vy = Y
+    r = np.hypot(x, y)
+    mu_r3 = cts.mu_sun / (r**3)
 
-    FF = np.zeros_like(Y)        # inicializa FF de manera que sea un array con el mismo numero de componentes que Y, poniendo todas las componentes =0 de entrada
-    y0 = Y[0]
-    y1 = Y[1]
-    r = np.sqrt(y0*y0+y1*y1)
-    mu_r3 = cts.mu_sun/(r*r*r)
-    [Rt_x, Rt_y] = R(t, cts.R_orb_A, cts.frec_A) # obtiene la posición del planeta
-    Rt = np.sqrt(Rt_x*Rt_x+ Rt_y*Rt_y)
-    Rt_3 = 1/(Rt*Rt*Rt)
+    Rx, Ry = R(t, cts.R_orb_A, cts.frec_A)
+    Rm = np.hypot(Rx, Ry)
+    Rm3 = 1.0 / (Rm**3)
 
-    rel_pos_x = y0-Rt_x
-    rel_pos_y = y1-Rt_y
-    rel_pos_mod = np.sqrt(rel_pos_x*rel_pos_x+rel_pos_y*rel_pos_y)
-    rel_pos_mod_3 = 1/(rel_pos_mod*rel_pos_mod*rel_pos_mod)
+    dx = x - Rx
+    dy = y - Ry
+    dm = np.hypot(dx, dy)
+    dm3 = 1.0 / (dm**3)
 
-    FF[0] = Y[2]
-    FF[1] = Y[3]
-    FF[2] = (-y0*mu_r3) - cts.mu_earth*(rel_pos_x*rel_pos_mod_3 + Rt_x*Rt_3)
-    FF[3] = (-y1*mu_r3) - cts.mu_earth*(rel_pos_y*rel_pos_mod_3 + Rt_y*Rt_3)
+    ax = (-x * mu_r3) - cts.mu_earth * (dx * dm3 + Rx * Rm3)
+    ay = (-y * mu_r3) - cts.mu_earth * (dy * dm3 + Ry * Rm3)
 
-    return FF
+    return np.array([vx, vy, ax, ay])
 
-#vector Y: x,y,v_x,v_y
+t0 = 0.0
+tf = float(analitical.T_transfer)
+dt = (tf - t0) / nstep
+t = np.linspace(t0, tf, nstep + 1, endpoint=True)
+
+V_ign = analitical.deltaV_ignI * IC.t_hat_theta
+Y0 = IC.Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
 t1 = time.time()
 
-t0 = 0
-tf = analitical.T_transfer
+sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
 
-dt = (tf-t0)/nstep
+t2 = time.time()
 
-t = np.linspace(t0,tf,nstep+1, endpoint = True) 
+r = np.hypot(sol.y[0], sol.y[1])
+print("runtime =", t2 - t1)
+print("r_max =", r.max(), "target =", cts.R_orb_B)
 
-Y0 = IC.Y0 + np.array([0,0,0,analitical.deltaV_ignI])
-sol = solve_ivp(F, (t0,tf), Y0, t_eval=t, method='DOP853', atol=tola, rtol=tolr)   
-
-Y = sol.y
-t2 = time.time()        
-print('tiempo de ejec. =',t2-t1)
-print(sol)
-
-
-plotter.plot2D(t, dt, Y, R)
+plotter.plot2D(sol.t, dt, sol.y, R)
