@@ -6,6 +6,7 @@ from include import plotter
 
 print("Initializing simulation, pls wait ...")
 k = 0.8 # asegurar que llega a R_B
+k = 1 # asegurar que llega a R_B
 
 nstep = int(4e2)
 atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-4  # km, km, km/s, km/s
@@ -35,6 +36,9 @@ def F(t, Y):
     ay = (-y * mu_r3) - cts.mu_earth * (dy * dm3 + Ry * Rm3)
 
     return np.array([vx, vy, ax, ay])
+
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
 def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = True): ## mejor renombrar las variables internas para que no se pisen
 
@@ -79,3 +83,5 @@ print("plotting...")
 dt = (analitical.T_transfer - 0) / nstep
 plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 plotter.plot2D(sol.t, dt, sol.y, R)
+#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+#plotter.plot2D(sol.t, dt, sol.y, R)
