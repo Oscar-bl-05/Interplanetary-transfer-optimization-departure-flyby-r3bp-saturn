@@ -41,6 +41,7 @@ def ICtoY0(rho0, theta0 = 0, delta0 = 0):
 Y0, t_hat_theta = ICtoY0(rho0, theta0, delta0)
 rho0 = cts.R_Earth * 1.1
 
+# Velocidad relativa a la Tierra [km/s]
 delta0 = 0 * cts.deg2rad
 t_hat_delta = np.array([
     -np.sin(delta0),
@@ -61,6 +62,7 @@ def initial_conditions(theta0):
 
 
     # Velocidad relativa a la Tierra (km/s)
+    # Velocidad relativa al Sol (km/s)
     t_hat_theta = np.array([
         -np.sin(theta0),
         np.cos(theta0)
