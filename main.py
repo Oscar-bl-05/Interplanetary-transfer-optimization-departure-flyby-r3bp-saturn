@@ -5,11 +5,14 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
-k = 0.8 # asegurar que llega a R_B
+k = 1 # asegurar que llega a R_B
 
 nstep = int(4e2)
 atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-4  # km, km, km/s, km/s
 rtol = 1e-8
+
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
 def R(t, R_orb, frec):
     return [
@@ -77,5 +80,6 @@ sol, sol_ref = simulate(
 
 print("plotting...")
 dt = (analitical.T_transfer - 0) / nstep
-plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-plotter.plot2D(sol.t, dt, sol.y, R)
+
+#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+#plotter.plot2D(sol.t, dt, sol.y, R)

@@ -40,8 +40,8 @@ def hit_state(atol, rtol):
     tf = float(analitical.T_transfer)
     dt = (tf - t0) / 160.0
 
-    V_ign = k_test * analitical.deltaV_ignI * IC.t_hat_theta
-    Y0 = IC.Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+    V_ign = k_test * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+    Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
     sol = solve_ivp(F, (t0, tf), Y0, method="DOP853", atol=atol, rtol=rtol, events=reach_RB, max_step=dt)
 
