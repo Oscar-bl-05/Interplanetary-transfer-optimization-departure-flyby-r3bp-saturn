@@ -52,12 +52,12 @@ seed = (analitical.deltaV_ignI, analitical.theta_0I)
 
 t1 = time.time()
 
-def optimize(f, seed, maxiter):
-    vel0 = seed[0]
-    theta0 = seed[1]
+def optimize(f, variables, maxiter):
+    vel0 = variables[0]
+    theta0 = variables[1]
     gradvel0 = 1000
     gradtheta0 = 0.5
-    ans = f(analitical.deltaV_ignI, analitical.theta_0I)
+    ans = f(variables[0], variables[1])
     rthetaans = np.hypot(ans.y[0], ans.y[1])
     rvelans = np.hypot(ans.y[0], ans.y[1])
     for i in range(maxiter):
