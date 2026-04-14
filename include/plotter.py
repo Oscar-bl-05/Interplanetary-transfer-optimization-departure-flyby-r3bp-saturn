@@ -42,7 +42,7 @@ def plot2D(t, dt, Y, R_f):
     plt.show()
 
 def plot_solution(t, Y, Y_ref):
-        
+      
     t_yr = t / (365.25 * 24 * 3600)
 
     var_labels = ['$Y_0 = x$', '$Y_1 = y$', '$Y_2 = v_x$', '$Y_3 = v_y$']
@@ -50,8 +50,9 @@ def plot_solution(t, Y, Y_ref):
     err_labels = ['Error on $Y_0 = x$', 'Error on $Y_1 = y$', 'Error on $Y_2 = v_x$', 'Error on $Y_3 = v_y$']
 
     # Variables
-    for i in range(4):
-        plt.figure()
+    plt.subplots(nrows=2, ncols=4, squeeze=True)
+    for i in range(4): 
+        plt.subplot(2,4,i+1)   
         plt.plot(t_yr, Y[i, :], color='black', label=var_labels[i])
         plt.xlabel('time (years)')
         plt.ylabel(var_units[i])
@@ -60,9 +61,11 @@ def plot_solution(t, Y, Y_ref):
 
     # Errores
     for i in range(4):
-        plt.figure()
+        plt.subplot(2,4,i+5) 
         plt.plot(t_yr, Y[i, :] - Y_ref[i, :], color='black', label=err_labels[i])
         plt.xlabel('time (years)')
         plt.ylabel(var_units[i])
         plt.title('Error on the solution for ' + var_labels[i], fontsize=12, color='gray')
         plt.legend()
+
+    plt.show()

@@ -41,7 +41,7 @@ def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = 
     t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
     V_ign = k * analitical.deltaV_ignI * IC.t_hat_theta # habria que optimizar
-    Y0 += np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+    simY0 = Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
     print("T_transfer (years) =", tf / (365.25 * 24 * 3600))
     print("deltaV_ignI (km/s) =", np.hypot(V_ign[0], V_ign[1]))
@@ -49,7 +49,7 @@ def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = 
 
     t1 = time.time()
 
-    sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
+    sol = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
 
     t2 = time.time()
 
@@ -60,12 +60,12 @@ def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = 
 
     # Solución de referencia para errores (paso 6)
     if check_errors:
-        sol_ref = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
+        sol_ref = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
         return sol, sol_ref
     else:
         return sol, None
 
-
+"""
 sol, sol_ref = simulate(
     nstep = nstep, 
     atol = atol, 
@@ -76,18 +76,18 @@ sol, sol_ref = simulate(
     k=k_def,
     check_errors = True)
 
-"""
+
 print("plotting...")
 dt = (analitical.T_transfer - 0) / nstep
 plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 plotter.plot2D(sol.t, dt, sol.y, R)
 """
-k_sweep = np.linspace(0.19, 0.61, 101)
+k_sweep = np.linspace(0.4, 0.99, 60)
 
-def k_sweep(values_to_sweep):
+def sweep(values_to_sweep):
     results = []
     for vts in values_to_sweep:
-        sol = simulate(
+        sol, sol_ref = simulate(
             nstep = nstep, 
             atol = atol, 
             rtol = rtol,
@@ -95,8 +95,10 @@ def k_sweep(values_to_sweep):
             tf = float(analitical.T_transfer),
             Y0 = IC.Y0,
             k=vts,
-            check_errors = False)[0]
+            check_errors = False)
+        #print("plot debug check")
+        #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
         results.append(sol)
     #print(results)
 
-k_sweep(k_sweep)
+sweep(k_sweep)
