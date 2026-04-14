@@ -5,7 +5,7 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
-k = 1.10 # asegurar que llega a R_B
+k = 1 # asegurar que llega a R_B
 
 nstep = int(1.6e2)
 atol = np.array([1e0, 1e0, 1e-4, 1e-4])  # km, km, km/s, km/s
@@ -41,8 +41,8 @@ tf = float(analitical.T_transfer)
 dt = (tf - t0) / nstep
 t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
-V_ign = k * analitical.deltaV_ignI * IC.t_hat_theta # habria que optimizar
-Y0 = IC.Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
 print("T_transfer (years) =", tf / (365.25 * 24 * 3600))
 print("deltaV_ignI (km/s) =", analitical.deltaV_ignI)
@@ -61,5 +61,5 @@ print("r_max =", r.max(), "target =", cts.R_orb_B)
 # Solución de referencia para errores (paso 6)
 sol_ref = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
 
-plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-plotter.plot2D(sol.t, dt, sol.y, R)
+#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+#plotter.plot2D(sol.t, dt, sol.y, R)
