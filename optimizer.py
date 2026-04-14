@@ -52,20 +52,20 @@ seed = (analitical.deltaV_ignI, analitical.theta_0I)
 
 t1 = time.time()
 
-def optimize(seed, maxiter):
+def optimize(f, seed, maxiter):
     vel0 = seed[0]
     theta0 = seed[1]
     gradvel0 = 1000
     gradtheta0 = 0.5
-    ans = solution(analitical.deltaV_ignI, analitical.theta_0I)
+    ans = f(analitical.deltaV_ignI, analitical.theta_0I)
     rthetaans = np.hypot(ans.y[0], ans.y[1])
     rvelans = np.hypot(ans.y[0], ans.y[1])
     for i in range(maxiter):
         testvel = vel0 + gradvel0
         testtheta = theta0 + gradtheta0
 
-        soltheta = solution(vel0, testtheta)
-        solvel = solution(testvel,theta0)
+        soltheta = f(vel0, testtheta)
+        solvel = f(testvel,theta0)
 
         rtheta = np.hypot(soltheta.y[0], soltheta.y[1])
         rvel = np.hypot(solvel.y[0], solvel.y[1])
@@ -92,7 +92,7 @@ def optimize(seed, maxiter):
 
 t2 = time.time()
 
-x1, x2 = optimize(seed, 100)
+x1, x2 = optimize(solution, seed, 100)
 
 print(f"Diferencia theta {x1}")
 print (f"Diferencia vel {x2}")
