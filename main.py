@@ -5,10 +5,10 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
-k_def = 0.8 # asegurar que llega a R_B
+k_def = 1 # asegurar que llega a R_B
 
 nstep = int(4e5)
-atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-8  # km, km, km/s, km/s
+atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-6  # km, km, km/s, km/s
 rtol = 1e-12
 
 def R(t, R_orb, frec):
@@ -62,7 +62,7 @@ def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = 
     if check_errors:
         t3 = time.time()
         print("Checking errors ...")
-        sol_ref = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=np.array([1e-8, 1e-8, 1e-12, 1e-12]), rtol=1e-13)
+        sol_ref = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
         t4 = time.time()
         print("errCheck runtime =", t4 - t3)
         return sol, sol_ref
