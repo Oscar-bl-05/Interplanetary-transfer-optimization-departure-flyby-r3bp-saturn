@@ -63,6 +63,15 @@ def initial_conditions(theta0):
         rho0*np.sin(theta0)
     ])
 
+
+
+    # Velocidad relativa a la Tierra (km/s)
+    # Velocidad relativa al Sol (km/s)
+    t_hat_theta = np.array([
+        -np.sin(theta0),
+        np.cos(theta0)
+    ])
+
     # Velocidad relativa al Sol (km/s)
     t_hat_theta = np.array([
         -np.sin(theta0),
