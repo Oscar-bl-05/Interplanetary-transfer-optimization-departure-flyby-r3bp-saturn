@@ -95,24 +95,40 @@ plotter.plot2D(sol.t, dt, sol.y, R)
 
 k_sweep = np.linspace(0.4, 0.99, 60) #valores de k a probar, hay que hacer otro de teta
 
-def sweep(values_to_sweep):
+def sweep(values_to_sweep, parameter):
     results = []
-    for vts in values_to_sweep:
-        sol, sol_ref = simulate(
-            nstep = nstep, 
-            atol = atol, 
-            rtol = rtol,
-            t0 = 0.0,
-            tf = float(analitical.T_transfer),
-            Y0 = IC.Y0,
-            k=vts,
-            check_errors = False)
-        #print("plot debug check")
-        #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-        results.append(sol)
+    if parameter == "k" or parameter == "deltaV":
+        for vts in values_to_sweep:
+            sol, sol_ref = simulate(
+                nstep = nstep, 
+                atol = atol, 
+                rtol = rtol,
+                t0 = 0.0,
+                tf = float(analitical.T_transfer),
+                Y0 = IC.Y0,
+                k=vts,
+                check_errors = False)
+            #print("plot debug check")
+            #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+            results.append(sol)
+    elif parameter == "theta":
+        for vts in values_to_sweep:
+            sol, sol_ref = simulate(
+                nstep = nstep, 
+                atol = atol, 
+                rtol = rtol,
+                t0 = 0.0,
+                tf = float(analitical.T_transfer),
+                Y0 = IC.ICtoY0(theta0=vts), #####           ESTO NO FUNCIONA
+                k=k_def,
+                check_errors = False)
+            results.append(sol)
+    else:
+        print("No specified paramater to sweep")
+
     #print(results)
 
-#sweep(k_sweep)
+#sweep(k_sweep, parameter="k")
 
 
 sol, sol_ref = simulate(
