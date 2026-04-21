@@ -5,7 +5,9 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
+
 k_def = 1 # asegurar que llega a R_B
+k = 1 # asegurar que llega a R_B
 
 nstep = int(4e5)
 atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-6  # km, km, km/s, km/s
@@ -36,7 +38,12 @@ def F(t, Y):
 
     return np.array([vx, vy, ax, ay])
 
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+
 def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = True): ## mejor renombrar las variables internas para que no se pisen
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
     t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
@@ -108,3 +115,7 @@ def sweep(values_to_sweep):
 
 #sweep(k_sweep)
 
+#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+#plotter.plot2D(sol.t, dt, sol.y, R)
+#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+#plotter.plot2D(sol.t, dt, sol.y, R)
