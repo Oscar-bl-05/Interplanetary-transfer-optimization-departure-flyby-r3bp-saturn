@@ -42,8 +42,6 @@ V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[
 Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
 def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = True): ## mejor renombrar las variables internas para que no se pisen
-V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
-Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
     t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
@@ -94,7 +92,7 @@ plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 plotter.plot2D(sol.t, dt, sol.y, R)
 #"""
 
-k_sweep = np.linspace(0.4, 0.99, 60)
+k_sweep = np.linspace(0.4, 0.99, 60) #valores de k a probar, hay que hacer otro de teta
 
 def sweep(values_to_sweep):
     results = []
