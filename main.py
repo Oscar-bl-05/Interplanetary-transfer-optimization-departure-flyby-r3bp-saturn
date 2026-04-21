@@ -38,10 +38,12 @@ def F(t, Y):
     ay = (-y * mu_r3) - cts.mu_earth * (dy * dm3 + Ry * Rm3)
 
     return np.array([vx, vy, ax, ay])
-
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = True): ## mejor renombrar las variables internas para que no se pisen
 
     t = np.linspace(t0, tf, nstep + 1, endpoint=True)
+
 
     V_ign = k * analitical.deltaV_ignI * IC.t_hat_theta # habria que optimizar
     Y0 += np.array([0.0, 0.0, V_ign[0], V_ign[1]])
@@ -81,5 +83,7 @@ sol, sol_ref = simulate(
 print("plotting...")
 dt = (analitical.T_transfer - 0) / nstep
 
+#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+#plotter.plot2D(sol.t, dt, sol.y, R)
 #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 #plotter.plot2D(sol.t, dt, sol.y, R)

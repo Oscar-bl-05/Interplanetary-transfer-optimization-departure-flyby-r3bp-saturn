@@ -43,6 +43,10 @@ rho0 = cts.R_Earth * 1.1
 
 # Velocidad relativa a la Tierra [km/s]
 delta0 = 0 * cts.deg2rad
+rho0 = cts.R_Earth * 1.1
+
+# Velocidad relativa a la Tierra [km/s]
+delta0 = 0 * cts.deg2rad
 t_hat_delta = np.array([
     -np.sin(delta0),
     np.cos(delta0)
