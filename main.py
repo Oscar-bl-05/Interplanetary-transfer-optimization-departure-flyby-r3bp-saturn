@@ -9,9 +9,9 @@ print("Initializing simulation, pls wait ...")
 k_def = 1 # asegurar que llega a R_B
 k = 1 # asegurar que llega a R_B
 
-nstep = int(4e5)
+nstep = int(4e3)
 atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-6  # km, km, km/s, km/s
-rtol = 1e-12
+rtol = 1e-10
 
 def R(t, R_orb, frec):
     return [
@@ -38,11 +38,9 @@ def F(t, Y):
 
     return np.array([vx, vy, ax, ay])
 
-V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
-Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
-def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = True): ## mejor renombrar las variables internas para que no se pisen
+V_ign = k * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar # en proceso, jefe
+Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]]) # en algún momento habría que harmonizar las IC
 
-    t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
 def simulate(nstep, atol, rtol, tf, t0 = 0.0, k=1.0, Y0 = IC.Y0, check_errors = True): ## mejor renombrar las variables internas para que no se pisen
 
@@ -85,7 +83,7 @@ sol, sol_ref = simulate(
     t0 = 0.0,
     tf = float(analitical.T_transfer),
     Y0 = IC.Y0,
-    k=k_def*0.0001,
+    k=k_def,
     check_errors = True)
 
 
@@ -116,17 +114,6 @@ def sweep(values_to_sweep):
 
 #sweep(k_sweep)
 
-    r = np.hypot(sol.y[0], sol.y[1])
-    print("runtime =", t2 - t1)
-    print("r_max =", int(r.max()), "target =", cts.R_orb_B)
-
-    # Solución de referencia para errores (paso 6)
-    if check_errors:
-        sol_ref = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
-        return sol, sol_ref
-    else:
-        return sol, None
-
 
 sol, sol_ref = simulate(
     nstep = nstep, 
@@ -143,7 +130,4 @@ dt = (analitical.T_transfer - 0) / nstep
 
 #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 #plotter.plot2D(sol.t, dt, sol.y, R)
-#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-#plotter.plot2D(sol.t, dt, sol.y, R)
-#plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-#plotter.plot2D(sol.t, dt, sol.y, R)
+
