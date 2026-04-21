@@ -5,12 +5,13 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
-k = 0.8 # asegurar que llega a R_B
+
+k_def = 1 # asegurar que llega a R_B
 k = 1 # asegurar que llega a R_B
 
-nstep = int(4e2)
-atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-4  # km, km, km/s, km/s
-rtol = 1e-8
+nstep = int(4e5)
+atol = np.array([1e0, 1e0, 1e-4, 1e-4])*1e-6  # km, km, km/s, km/s
+rtol = 1e-12
 
 def R(t, R_orb, frec):
     return [
@@ -47,30 +48,35 @@ Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0
     t = np.linspace(t0, tf, nstep + 1, endpoint=True)
 
     V_ign = k * analitical.deltaV_ignI * IC.t_hat_theta # habria que optimizar
-    Y0 += np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+    simY0 = Y0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
     print("T_transfer (years) =", tf / (365.25 * 24 * 3600))
-    print("deltaV_ignI (km/s) =", analitical.deltaV_ignI)
+    print("deltaV_ignI (km/s) =", np.hypot(V_ign[0], V_ign[1]))
     print("deltaV_1H   (km/s) =", analitical.deltaV_1H)
 
     t1 = time.time()
 
-    sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
+    sol = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
 
     t2 = time.time()
 
     r = np.hypot(sol.y[0], sol.y[1])
     print("runtime =", t2 - t1)
-    print("r_max =", int(r.max()), "target =", cts.R_orb_B)
+    print("r_max =", int(r.max()), "target =", cts.R_orb_B, "dif =", cts.R_orb_B-int(r.max()), "k =", k)
+
 
     # Solución de referencia para errores (paso 6)
     if check_errors:
-        sol_ref = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
+        t3 = time.time()
+        print("Checking errors ...")
+        sol_ref = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12)
+        t4 = time.time()
+        print("errCheck runtime =", t4 - t3)
         return sol, sol_ref
     else:
         return sol, None
 
-
+#"""
 sol, sol_ref = simulate(
     nstep = nstep, 
     atol = atol, 
@@ -78,13 +84,37 @@ sol, sol_ref = simulate(
     t0 = 0.0,
     tf = float(analitical.T_transfer),
     Y0 = IC.Y0,
-    k=k,
+    k=k_def*0.0001,
     check_errors = True)
+
 
 print("plotting...")
 dt = (analitical.T_transfer - 0) / nstep
 plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 plotter.plot2D(sol.t, dt, sol.y, R)
+#"""
+
+k_sweep = np.linspace(0.4, 0.99, 60)
+
+def sweep(values_to_sweep):
+    results = []
+    for vts in values_to_sweep:
+        sol, sol_ref = simulate(
+            nstep = nstep, 
+            atol = atol, 
+            rtol = rtol,
+            t0 = 0.0,
+            tf = float(analitical.T_transfer),
+            Y0 = IC.Y0,
+            k=vts,
+            check_errors = False)
+        #print("plot debug check")
+        #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+        results.append(sol)
+    #print(results)
+
+#sweep(k_sweep)
+
 #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 #plotter.plot2D(sol.t, dt, sol.y, R)
 #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
