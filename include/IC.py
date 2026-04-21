@@ -3,7 +3,7 @@ from . import cts
 import numpy as np
 
 # Órbita inicial LEO
-rho0 = cts.R_Earth + 400          # km (400 km de altitud)
+rho0 = cts.R_Earth*1.1        #altura inicial
 theta0 = 0 * cts.deg2rad
 delta0 = 0 * cts.deg2rad
 
