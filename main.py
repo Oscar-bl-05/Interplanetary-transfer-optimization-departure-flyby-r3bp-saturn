@@ -116,16 +116,16 @@ def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimiza
             results.append(sol)
     elif parameter == "theta":
         for vts in values_to_sweep:
-            print(vts)
             sol, sol_ref = simulate(
                 nstep = nstep, 
                 atol = atol, 
                 rtol = rtol,
                 t0 = 0.0,
                 tf = float(analitical.T_transfer),
-                Y0 = IC.ICtoY0(theta0=vts)[0], #####           ESTO NO FUNCIONA
+                Y0 = IC.ICtoY0(theta0=vts)[0],
                 k=k_def,
                 check_errors = False)
+            print("Theta0 =", vts)
             results.append(sol)
     else:
         print("No specified paramater to sweep")
