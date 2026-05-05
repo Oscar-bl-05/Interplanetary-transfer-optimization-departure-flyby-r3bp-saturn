@@ -82,11 +82,6 @@ sol, sol_ref = simulate(
     check_errors=True
 )
 
-print("plotting...")
-dt = (analitical.T_transfer - 0.0) / nstep
-plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-plotter.plot2D(sol.t, dt, sol.y, R)
-
 k_sweep = np.linspace(0.4, 0.99, 60)
 theta_sweep = np.linspace(-np.pi/2, 0.0, 60)
 
@@ -139,8 +134,8 @@ sol, sol_ref = simulate(
     check_errors=True
 )
 
-print("plotting...")
+print("Plotting...")
 dt = (analitical.T_transfer - 0.0) / nstep
 
-# plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-# plotter.plot2D(sol.t, dt, sol.y, R)
+plotter.plot_solution(sol.t, sol.y, sol_ref.y)
+plotter.plot2D(sol.t, dt, sol.y, R)
