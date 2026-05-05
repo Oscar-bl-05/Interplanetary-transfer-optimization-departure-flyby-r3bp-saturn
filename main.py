@@ -81,14 +81,7 @@ sol, sol_ref = simulate(
     theta0=analitical.theta_0I,
     check_errors=True
 )
-
-
-print("plotting...")
 dt = (analitical.T_transfer - 0) / nstep
-plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-plotter.plot2D(sol.t, dt, sol.y, R)
-#"""
-
 k_sweep = np.linspace(0.4, 0.99, 60) #valores de k a probar, hay que hacer otro de teta
 theta_sweep = np.linspace(0, 1.5, 6)
 
@@ -103,7 +96,6 @@ def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimiza
                 rtol = rtol,
                 t0 = 0.0,
                 tf = float(analitical.T_transfer),
-                Y0 = IC.Y0,
                 k=vts,
                 check_errors = False)
             
@@ -119,7 +111,6 @@ def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimiza
                 rtol = rtol,
                 t0 = 0.0,
                 tf = float(analitical.T_transfer),
-                Y0 = IC.ICtoY0(theta0=vts)[0],
                 k=k_def,
                 check_errors = False)
             print("Theta0 =", vts)
