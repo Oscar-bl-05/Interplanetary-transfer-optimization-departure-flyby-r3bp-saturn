@@ -1,102 +1,93 @@
 import numpy as np
-import time
-import math
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
-from include import plotter
 
-print("Initializing simulation, pls wait ...")
-k = 1
+def optimize_case_I(F, nstep, atol, rtol, tf, t0=0.0, n_grid=10, n_refines=2,
+                    theta_center=None, dv_center=None, theta_span=0.5, dv_span=None):
+    if theta_center is None:
+        theta_center = float(analitical.theta_0I)
+    if dv_center is None:
+        dv_center = float(analitical.deltaV_ignI)
+    if dv_span is None:
+        dv_span = 0.3 * dv_center
 
-nstep = int(1.6e2)
-atol = np.array([1e0, 1e0, 1e-4, 1e-4])
-rtol = 1e-6
+    def reach_RB(t, Y):
+        return np.hypot(Y[0], Y[1]) - cts.R_orb_B
+    reach_RB.terminal = True
+    reach_RB.direction = 1
 
-def R(t, R_orb, frec):
-    return [
-        R_orb * np.cos(frec * t - IC.delta0),
-        R_orb * np.sin(frec * t - IC.delta0),
-    ]
+    def v_circ_at_r(x, y):
+        r = np.hypot(x, y)
+        vmod = np.sqrt(cts.mu_sun / r)
+        t_hat = np.array([-y / r, x / r])
+        return vmod * t_hat
 
-def F(t, Y):
-    x, y, vx, vy = Y
-    r = np.hypot(x, y)
-    mu_r3 = cts.mu_sun / (r**3)
+    def evaluate(theta0, dv_ign, dt):
+        baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta0, delta0=IC.delta0)
+        V_ign = dv_ign * t_hat_theta
+        Y0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
-    Rx, Ry = R(t, cts.R_orb_A, cts.frec_A)
-    Rm = np.hypot(Rx, Ry)
-    Rm3 = 1.0 / (Rm**3)
+        sol = solve_ivp(
+            F, (t0, tf), Y0,
+            method="DOP853",
+            atol=atol, rtol=rtol,
+            events=reach_RB,
+            max_step=dt
+        )
 
-    dx = x - Rx
-    dy = y - Ry
-    dm = np.hypot(dx, dy)
-    dm3 = 1.0 / (dm**3)
+        if len(sol.t_events[0]) == 0:
+            return None
 
-    ax = (-x * mu_r3) - cts.mu_earth * (dx * dm3 + Rx * Rm3)
-    ay = (-y * mu_r3) - cts.mu_earth * (dy * dm3 + Ry * Rm3)
+        t_fin = sol.t_events[0][0]
+        y_fin = sol.y_events[0][0]
 
-    return np.array([vx, vy, ax, ay])
+        v_target = v_circ_at_r(y_fin[0], y_fin[1])
+        v_sc = np.array([y_fin[2], y_fin[3]])
+        dv_fin = np.linalg.norm(v_target - v_sc)
+        dv_tot = abs(dv_ign) + abs(dv_fin)
 
-t0 = 0.0
-tf = float(analitical.T_transfer)
-dt = (tf - t0) / nstep
-t = np.linspace(t0, tf, nstep + 1, endpoint=True)
+        return {
+            "theta": theta0,
+            "dv_ign": dv_ign,
+            "dv_fin": dv_fin,
+            "dv_tot": dv_tot,
+            "t_fin": t_fin,
+            "y_fin": y_fin,
+            "sol": sol
+        }
 
-def solution(v, theta):
-    baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta, delta0=IC.delta0)
-    V_ign = k * v * t_hat_theta
-    Y0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
-    sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
-    return sol
+    def grid_search(theta_c, dv_c, th_span, dv_sp):
+        dt = (tf - t0) / nstep
+        theta_vals = np.linspace(theta_c - th_span, theta_c + th_span, n_grid)
+        dv_vals = np.linspace(dv_c - dv_sp, dv_c + dv_sp, n_grid)
 
-seed = (analitical.deltaV_ignI, analitical.theta_0I)
+        best = None
+        best_cost = np.inf
 
-t1 = time.time()
+        for th in theta_vals:
+            for dv in dv_vals:
+                if dv <= 0:
+                    continue
+                out = evaluate(th, dv, dt)
+                if out is None:
+                    continue
+                if out["dv_tot"] < best_cost:
+                    best_cost = out["dv_tot"]
+                    best = out
 
-def optimize(f, variables, maxiter):
-    vel0 = variables[0]
-    theta0 = variables[1]
-    gradvel0 = 1000
-    gradtheta0 = 0.5
+        return best
 
-    ans = f(vel0, theta0)
-    rthetaans = np.hypot(ans.y[0], ans.y[1])
-    rvelans = np.hypot(ans.y[0], ans.y[1])
+    best = grid_search(theta_center, dv_center, theta_span, dv_span)
+    if best is None:
+        return None
 
-    for i in range(maxiter):
-        testvel = vel0 + gradvel0
-        testtheta = theta0 + gradtheta0
+    th_span = theta_span
+    dv_sp = dv_span
+    for _ in range(n_refines):
+        th_span *= 0.25
+        dv_sp *= 0.25
+        best = grid_search(best["theta"], best["dv_ign"], th_span, dv_sp)
+        if best is None:
+            return None
 
-        soltheta = f(vel0, testtheta)
-        solvel = f(testvel, theta0)
-
-        rtheta = np.hypot(soltheta.y[0], soltheta.y[1])
-        rvel = np.hypot(solvel.y[0], solvel.y[1])
-
-        rdiftheta = rtheta.max() - rthetaans.max()
-        rdifvel = rvel.max() - rvelans.max()
-
-        fromgoaltheta = cts.R_orb_B - rtheta.max()
-        fromgoalvel = cts.R_orb_B - rvel.max()
-
-        thetaratio = math.copysign(math.exp(-abs(rdiftheta / fromgoaltheta)), fromgoaltheta)
-        velratio = math.copysign(math.exp(-abs(rdifvel / fromgoalvel)), fromgoalvel)
-
-        gradvel0 = gradvel0 * (1 + velratio)
-        gradtheta0 = gradtheta0 * (1 + thetaratio)
-
-        vel0 = testvel
-        theta0 = testtheta
-
-        rthetaans = rtheta
-        rvelans = rvel
-
-    return fromgoaltheta, fromgoalvel
-
-x1, x2 = optimize(solution, seed, 100)
-
-t2 = time.time()
-
-print(f"Diferencia theta {x1}")
-print(f"Diferencia vel {x2}")
-print("runtime =", t2 - t1)
+    return best

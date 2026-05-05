@@ -3,6 +3,7 @@ import time
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 from include import plotter
+from optimizer import optimize_case_I
 
 """
 1. Documentarse
@@ -87,12 +88,17 @@ memoria aparecerán los nombres de los integrantes del grupo.
 
 print("Initializing simulation, pls wait ...")
 
-k_def = 1 # duplicado xd, quitar uno
-k = 1
-
-nstep = int(4e3)
-atol = np.array([1e0, 1e0, 1e-4, 1e-4])  # km, km, km/s, km/s
+atol = np.array([1e0, 1e0, 1e-4, 1e-4])
 rtol = 1e-6
+
+atol_ref = np.array([1e-6, 1e-6, 1e-10, 1e-10])
+rtol_ref = 1e-12
+
+nstep_opt = 750
+nstep_plot = 4000
+
+t0 = 0.0
+tf = float(analitical.T_transfer)
 
 def R(t, R_orb, frec):
     return [
@@ -119,91 +125,120 @@ def F(t, Y):
 
     return np.array([vx, vy, ax, ay])
 
-def simulate(nstep, atol, rtol, tf, t0=0.0, k=1.0, theta0=analitical.theta_0I, check_errors=True):
-    t = np.linspace(t0, tf, nstep + 1, endpoint=True)
+def reach_RB(t, Y):
+    return np.hypot(Y[0], Y[1]) - cts.R_orb_B
 
-    baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta0, delta0=IC.delta0)
+reach_RB.terminal = True
+reach_RB.direction = 1
 
-    V_ign = k * analitical.deltaV_ignI * t_hat_theta
-    simY0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+print("\nStarting optimization...")
+t_opt_start = time.time()
 
-    print("T_transfer (years) =", tf / (365.25 * 24 * 3600))
-    print("deltaV_ignI (km/s) =", np.hypot(V_ign[0], V_ign[1]))
-    print("deltaV_1H   (km/s) =", analitical.deltaV_1H)
-
-    t1 = time.time()
-    sol = solve_ivp(F, (t0, tf), simY0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
-    t2 = time.time()
-
-    r = np.hypot(sol.y[0], sol.y[1])
-    print("runtime =", t2 - t1)
-    print("r_max =", int(r.max()), "target =", cts.R_orb_B, "dif =", cts.R_orb_B - int(r.max()), "k =", k)
-
-    if check_errors:
-        t3 = time.time()
-        print("Checking errors ...")
-        sol_ref = solve_ivp(
-            F, (t0, tf), simY0, t_eval=t, method="DOP853",
-            atol=np.array([1e-6, 1e-6, 1e-10, 1e-10]), rtol=1e-12
-        )
-        t4 = time.time()
-        print("errCheck runtime =", t4 - t3)
-        return sol, sol_ref
-    else:
-        return sol, None
-
-sol, sol_ref = simulate(
-    nstep=nstep,
+best = optimize_case_I(
+    F=F,
+    nstep=nstep_opt,
     atol=atol,
     rtol=rtol,
-    t0=0.0,
-    tf=float(analitical.T_transfer),
-    k=k_def,
-    theta0=analitical.theta_0I,
-    check_errors=True
+    tf=tf,
+    t0=t0,
+    n_grid=10,
+    n_refines=2
 )
-dt = (analitical.T_transfer - 0) / nstep
-k_sweep = np.linspace(0.4, 0.99, 60) #valores de k a probar, hay que hacer otro de teta
-theta_sweep = np.linspace(0, 1.5, 6)
 
-def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimización de ambos valores a la vez
-    results = []
-    if parameter == "k" or parameter == "deltaV":
-        for vts in values_to_sweep:
+t_opt_end = time.time()
 
-            sol, sol_ref = simulate(
-                nstep = nstep, 
-                atol = atol, 
-                rtol = rtol,
-                t0 = 0.0,
-                tf = float(analitical.T_transfer),
-                k=vts,
-                check_errors = False)
-            
-            #print("plot debug check")
-            #plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-            results.append(sol)
+if best is None:
+    print("No valid (theta, dv_ign) reached R_B in the explored grids.")
+    raise SystemExit(1)
 
-    elif parameter == "theta":
-        for vts in values_to_sweep:
-            sol, sol_ref = simulate(
-                nstep = nstep, 
-                atol = atol, 
-                rtol = rtol,
-                t0 = 0.0,
-                tf = float(analitical.T_transfer),
-                theta0=vts,
-                k=k_def,
-                check_errors = False)
-            print("Theta0 =", vts)
-            results.append(sol)
+theta_opt = float(best["theta"])
+dv_ign_opt = float(best["dv_ign"])
 
-    else:
-        print("No specified paramater to sweep")
+print("\n--- OPTIMUM (Case I) ---")
+print("theta_opt (rad) =", theta_opt)
+print("dv_ign_opt (km/s) =", dv_ign_opt)
+print("dv_fin_opt (km/s) =", float(best["dv_fin"]))
+print("dv_tot_opt (km/s) =", float(best["dv_tot"]))
+print("t_fin_opt (years) =", float(best["t_fin"]) / (365.25 * 24 * 3600))
+print("optimizer runtime (s) =", t_opt_end - t_opt_start)
 
-    return results
+baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta_opt, delta0=IC.delta0)
+V_ign = dv_ign_opt * t_hat_theta
+Y0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
 
-sweep(theta_sweep, parameter="theta")
+dt_event = (tf - t0) / nstep_opt
 
-plotter.plot_solution(sol.t, sol.y, sol_ref.y)
-plotter.plot2D(sol.t, dt, sol.y, R)
+t_sim_start = time.time()
+sol = solve_ivp(
+    F, (t0, tf), Y0,
+    method="DOP853",
+    atol=atol, rtol=rtol,
+    events=reach_RB,
+    max_step=dt_event
+)
+t_sim_end = time.time()
+
+if len(sol.t_events[0]) == 0:
+    rmax = np.hypot(sol.y[0], sol.y[1]).max()
+    print("\nDid NOT reach R_B with optimal parameters (unexpected).")
+    print("r_max =", rmax, "missing =", cts.R_orb_B - rmax, "km")
+    raise SystemExit(1)
+
+t_hit = float(sol.t_events[0][0])
+y_hit = sol.y_events[0][0]
+r_hit = float(np.hypot(y_hit[0], y_hit[1]))
+
+print("\n--- HIT (fast tolerances) ---")
+print("t_hit (years) =", t_hit / (365.25 * 24 * 3600))
+print("r_hit (km) =", r_hit)
+print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
+print("sim runtime (s) =", t_sim_end - t_sim_start)
+
+t_ref_start = time.time()
+sol_ref_event = solve_ivp(
+    F, (t0, tf), Y0,
+    method="DOP853",
+    atol=atol_ref, rtol=rtol_ref,
+    events=reach_RB,
+    max_step=dt_event
+)
+t_ref_end = time.time()
+
+if len(sol_ref_event.t_events[0]) == 0:
+    print("\nReference run did NOT reach R_B (unexpected).")
+    raise SystemExit(1)
+
+t_hit_ref = float(sol_ref_event.t_events[0][0])
+y_hit_ref = sol_ref_event.y_events[0][0]
+
+pos_err_km = float(np.hypot(y_hit[0] - y_hit_ref[0], y_hit[1] - y_hit_ref[1]))
+vel_err_ms = float(1000.0 * np.hypot(y_hit[2] - y_hit_ref[2], y_hit[3] - y_hit_ref[3]))
+
+print("\n--- GLOBAL NUMERICAL ERROR @ R_B (vs reference) ---")
+print("t_hit_fast  (years) =", t_hit / (365.25 * 24 * 3600))
+print("t_hit_ref   (years) =", t_hit_ref / (365.25 * 24 * 3600))
+print("pos_err (km) =", pos_err_km)
+print("vel_err (m/s) =", vel_err_ms)
+print("ref runtime (s) =", t_ref_end - t_ref_start)
+
+# -------- PLOTS DEL ÓPTIMO --------
+t_plot = np.linspace(t0, t_hit, nstep_plot + 1, endpoint=True)
+dt_plot = (t_hit - t0) / nstep_plot
+
+sol_plot = solve_ivp(
+    F, (t0, t_hit), Y0,
+    t_eval=t_plot,
+    method="DOP853",
+    atol=atol, rtol=rtol
+)
+
+sol_plot_ref = solve_ivp(
+    F, (t0, t_hit), Y0,
+    t_eval=t_plot,
+    method="DOP853",
+    atol=atol_ref, rtol=rtol_ref
+)
+
+print("\nPlotting optimum trajectory and errors...")
+plotter.plot_solution(sol_plot.t, sol_plot.y, sol_plot_ref.y)
+plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
