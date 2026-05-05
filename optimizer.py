@@ -100,3 +100,6 @@ t2 = time.time()
 print(f"Diferencia theta {x1}")
 print(f"Diferencia vel {x2}")
 print("runtime =", t2 - t1)
+
+
+

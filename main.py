@@ -1,8 +1,8 @@
 import numpy as np
 import time
 from scipy.integrate import solve_ivp
-from include import cts, analitical, IC
-from include import plotter
+from include import cts, analitical, IC, plotter
+
 
 """
 1. Documentarse
@@ -163,10 +163,10 @@ sol, sol_ref = simulate(
     check_errors=True
 )
 dt = (analitical.T_transfer - 0) / nstep
-k_sweep = np.linspace(0.4, 0.99, 60) #valores de k a probar, hay que hacer otro de teta
-theta_sweep = np.linspace(0, 1.5, 6)
+k_sweep = np.linspace(0.85, 1.05, 11) #valores de k a probar, hay que hacer otro de teta
+theta_sweep = np.linspace(-1.5, 1.5, 11)
 
-def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimización de ambos valores a la vez
+def sweep(values_to_sweep, parameter):
     results = []
     if parameter == "k" or parameter == "deltaV":
         for vts in values_to_sweep:
@@ -197,13 +197,26 @@ def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimiza
                 check_errors = False)
             print("Theta0 =", vts)
             results.append(sol)
-
+    elif parameter == ["k","theta"]:
+        for vts_k in values_to_sweep[0]:
+            for vts_th in values_to_sweep[1]:
+                sol, sol_ref = simulate(
+                nstep = nstep, 
+                atol = atol, 
+                rtol = rtol,
+                t0 = 0.0,
+                tf = float(analitical.T_transfer),
+                theta0=vts_th,
+                k=vts_k,
+                check_errors = False)
+                print("Theta0 =", vts_th)
+                results.append(sol)
     else:
-        print("No specified paramater to sweep")
+        print("Unrecognized sweeping parameter(s)")
 
     return results
 
-sweep(theta_sweep, parameter="theta")
+sweep([k_sweep,theta_sweep],["k", "theta"])
 
 plotter.plot_solution(sol.t, sol.y, sol_ref.y)
 plotter.plot2D(sol.t, dt, sol.y, R)
