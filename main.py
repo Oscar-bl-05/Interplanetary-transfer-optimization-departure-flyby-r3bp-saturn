@@ -111,6 +111,7 @@ def sweep(values_to_sweep, parameter): # Queda por implementar que haga optimiza
                 rtol = rtol,
                 t0 = 0.0,
                 tf = float(analitical.T_transfer),
+                theta0=vts,
                 k=k_def,
                 check_errors = False)
             print("Theta0 =", vts)
