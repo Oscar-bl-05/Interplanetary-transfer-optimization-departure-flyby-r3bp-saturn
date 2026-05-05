@@ -6,10 +6,10 @@ from include import cts, analitical, IC
 from include import plotter
 
 print("Initializing simulation, pls wait ...")
-k = 1 # asegurar que llega a R_B
+k = 1
 
 nstep = int(1.6e2)
-atol = np.array([1e0, 1e0, 1e-4, 1e-4])  # km, km, km/s, km/s
+atol = np.array([1e0, 1e0, 1e-4, 1e-4])
 rtol = 1e-6
 
 def R(t, R_orb, frec):
@@ -37,16 +37,17 @@ def F(t, Y):
 
     return np.array([vx, vy, ax, ay])
 
-def solution (v,theta):
-        V_ign = k * v * IC.initial_conditions(theta)[1]
-        Y0 = IC.initial_conditions(theta)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
-        sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
-        return(sol)
-
 t0 = 0.0
 tf = float(analitical.T_transfer)
 dt = (tf - t0) / nstep
 t = np.linspace(t0, tf, nstep + 1, endpoint=True)
+
+def solution(v, theta):
+    baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta, delta0=IC.delta0)
+    V_ign = k * v * t_hat_theta
+    Y0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+    sol = solve_ivp(F, (t0, tf), Y0, t_eval=t, method="DOP853", atol=atol, rtol=rtol)
+    return sol
 
 seed = (analitical.deltaV_ignI, analitical.theta_0I)
 
@@ -57,15 +58,17 @@ def optimize(f, variables, maxiter):
     theta0 = variables[1]
     gradvel0 = 1000
     gradtheta0 = 0.5
-    ans = f(variables[0], variables[1])
+
+    ans = f(vel0, theta0)
     rthetaans = np.hypot(ans.y[0], ans.y[1])
     rvelans = np.hypot(ans.y[0], ans.y[1])
+
     for i in range(maxiter):
         testvel = vel0 + gradvel0
         testtheta = theta0 + gradtheta0
 
         soltheta = f(vel0, testtheta)
-        solvel = f(testvel,theta0)
+        solvel = f(testvel, theta0)
 
         rtheta = np.hypot(soltheta.y[0], soltheta.y[1])
         rvel = np.hypot(solvel.y[0], solvel.y[1])
@@ -75,12 +78,12 @@ def optimize(f, variables, maxiter):
 
         fromgoaltheta = cts.R_orb_B - rtheta.max()
         fromgoalvel = cts.R_orb_B - rvel.max()
-        
-        thetaratio = math.copysign(math.exp(-abs(rdiftheta/fromgoaltheta)),fromgoaltheta)
-        velratio = math.copysign(math.exp(-abs(rdifvel/fromgoalvel)),fromgoalvel)
 
-        gradvel0 = gradvel0*(1+velratio)
-        gradtheta0 = gradtheta0*(1+thetaratio)
+        thetaratio = math.copysign(math.exp(-abs(rdiftheta / fromgoaltheta)), fromgoaltheta)
+        velratio = math.copysign(math.exp(-abs(rdifvel / fromgoalvel)), fromgoalvel)
+
+        gradvel0 = gradvel0 * (1 + velratio)
+        gradtheta0 = gradtheta0 * (1 + thetaratio)
 
         vel0 = testvel
         theta0 = testtheta
@@ -90,12 +93,10 @@ def optimize(f, variables, maxiter):
 
     return fromgoaltheta, fromgoalvel
 
-t2 = time.time()
-
 x1, x2 = optimize(solution, seed, 100)
 
-print(f"Diferencia theta {x1}")
-print (f"Diferencia vel {x2}")
+t2 = time.time()
 
+print(f"Diferencia theta {x1}")
+print(f"Diferencia vel {x2}")
 print("runtime =", t2 - t1)
-#print("r_max =", r.max(), "target =", cts.R_orb_B)
