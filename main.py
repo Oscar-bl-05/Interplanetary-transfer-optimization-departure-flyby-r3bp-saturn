@@ -71,7 +71,7 @@ memoria aparecerán los nombres de los integrantes del grupo.
 # 6 check
 # 7 check (revisar al acabar)
 # 8 check
-# 9 hace falta doble bucle (solo tenemos bucle simple)
+# 9 check
 # 10 falta implementarlo
 # 11 falta implementarlo
 # 12 falta implementarlo (optimizador en proceso...)
