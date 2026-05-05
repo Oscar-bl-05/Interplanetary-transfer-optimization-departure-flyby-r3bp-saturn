@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 
-k_test = 1.10  # solo para este test: asegurar que llega a R_B
+k_test = 1.10  # asegurar que llega a R_B
 
 def R(t, R_orb, frec):
     return np.array([
@@ -40,14 +40,24 @@ def hit_state(atol, rtol):
     tf = float(analitical.T_transfer)
     dt = (tf - t0) / 160.0
 
-    V_ign = k_test * analitical.deltaV_ignI * IC.initial_conditions(analitical.theta_0I)[1] # habria que optimizar
-    Y0 = IC.initial_conditions(analitical.theta_0I)[0] + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+    baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=analitical.theta_0I, delta0=IC.delta0)
 
-    sol = solve_ivp(F, (t0, tf), Y0, method="DOP853", atol=atol, rtol=rtol, events=reach_RB, max_step=dt)
+    V_ign = k_test * analitical.deltaV_ignI * t_hat_theta
+    Y0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+
+    sol = solve_ivp(
+        F, (t0, tf), Y0,
+        method="DOP853",
+        atol=atol, rtol=rtol,
+        events=reach_RB,
+        max_step=dt
+    )
+
+    if len(sol.t_events[0]) == 0:
+        return None
 
     return sol.t_events[0][0], sol.y_events[0][0]
 
-# referencia "buena"
 atol_ref = np.array([1e-6, 1e-6, 1e-10, 1e-10])
 rtol_ref = 1e-12
 ref = hit_state(atol_ref, rtol_ref)

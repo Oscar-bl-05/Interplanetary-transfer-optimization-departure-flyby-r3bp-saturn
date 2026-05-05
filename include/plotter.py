@@ -67,5 +67,3 @@ def plot_solution(t, Y, Y_ref):
         plt.ylabel(var_units[i])
         plt.title('Error on the solution for ' + var_labels[i], fontsize=12, color='gray')
         plt.legend()
-
-    plt.show()
