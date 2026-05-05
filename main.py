@@ -4,9 +4,90 @@ from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 from include import plotter
 
+"""
+1. Documentarse
+2. Escribir las ecuaciones dinámicas ˙Y = F(t,Y ) 
+3. Implementar las ecuaciones dinámicas y las condiciones iniciales como funciones
+en un código de Python para su solución numérica.
+4. Usar las estimaciones analíticas del tiempo de transferencia en cada caso para
+elegir la duración de las simulaciones.
+5. Probar el código solucionando las ecuaciones dinámicas en dos ejemplos (no
+optimizados), uno del caso I y otro del II, eligiendo como condiciones iniciales
+las estimaciones analíticas de la sección B.5 (en el caso II, elegir un valor v∞
+intermedio, por ejemplo v∞ = 0,8∆vH)
+6. Representar las soluciones del punto anterior, obteniendo las gráficas de las
+variables dinámicas (posición y velocidad con respecto al sol) y de sus errores.
+7. Comprobar que los errores numéricos globales cuando se alcanza la distancia
+RB sean aceptables. Si hay margen, variar las tolerancias para encontrar valores
+mayores que sigan dando errores aceptables (por ejemplo menores de 1000 km
+para las longitudes y de 10 m/s para las velocidades). Elegir así tolerancias que
+sean suficientes para tener errores aceptables, pero que aceleren los cálculos
+para los bucles de optimización.
+8. En cada caso considerado (empezando con el I), definir un array de 10 valores
+de θ y un array de 10 valores de ∆vign, teniendo en cuenta las estimaciones de
+la sección B.5.1.
+9. Solucionar numéricamente las ecuaciones dinámicas para cada pareja de valores
+de θ y ∆vign (doble bucle) usando las tolerancias más laxas compatibles con
+los errores que se encontraron en el punto 7.
+10. Para cada una de tales soluciones, determinar tfin, definido como el primer
+tiempo en que r alcanza la distancia RB (dentro de un margen de error) Si no
+se alcanza esa distancia, se descarta el par de valores de θ y ∆vign. (Descartar
+los casos en que no se llega a alcanzar RB.)
+11. Usar los valores de ∆vign y de v(tfin) para calcular δv(I)
+tot correspondiente a cada
+par de valores de θ y ∆vign.
+12. Elegir los valores de θ y ∆vign que den lugar al menor gasto en delta v total.
+13. Repetir los pasos del 8 al 12 incluidos con array refinados alrededor de los
+valores de θ y ∆vign obtenidos en el paso 12. Se obtiene así un cálculo más
+preciso de los valores óptimos de θ y ∆vign (si necesario, repetir de nuevo el
+refinamiento hasta obtener resultados con la precisión deseada)
+14. Repetir los pasos del 8 al 13 para el caso II (cambiando oportunamente los
+arrays de condiciones iniciales y el tiempo de simulación).
+15. Para las soluciones óptimas de los dos casos I y II obtenidas, representar las
+gráficas de la evolución temporal de las variables dinámicas (posición y velocidad
+con respecto al sol) y de sus errores.
+16. Comprobar que los errores numéricos sean aceptables.
+17. Siempre para las soluciones óptimas de los dos casos I y II obtenidas, incluir
+también gráficas de r(t) (distancia del sol) y de |r(t) - R(t)| (distancia del
+planeta). Y gráficas en dos dimensiones de la trayectoria vista desde el sol
+(poniendo x, y en los ejes) y desde el centro del planeta A (poniendo x - X,
+y -Y en los ejes, donde X,Y son las componentes del vector R(t)).
+18. En los dos casos óptimos, representar la evolución de los elementos orbitales
+calculados respecto al sol y los relativos al planeta A
+19. Realizar una animación de la trayectoria.
+20. Discutir los resultados de los puntos anteriores. En particular, comparar el
+consumo en delta v total de los casos I y II optimizados, e interpretar el
+resultado.
+21. Redactar las conclusiones.
+22. Adjuntar los códigos y las figuras a la memoria. (El nombre de los ficheros de
+cada grupo contendrá el nombre de los planetas A-B. En la primera página de
+memoria aparecerán los nombres de los integrantes del grupo.
+"""
+# 1 check
+# 2 check
+# 3 check
+# 4 check
+# 5 check ; no tenemos un caso II funcional
+# 6 check
+# 7 check (revisar al acabar)
+# 8 check
+# 9 hace falta doble bucle (solo tenemos bucle simple)
+# 10 falta implementarlo
+# 11 falta implementarlo
+# 12 falta implementarlo (optimizador en proceso...)
+# 13 si construimos un optimizador de otra forma esto no es necesario (?)
+# 14 más de lo mismo pal caso II
+# 15 ya tenemos el plotter, solo falta la solución
+# 16 (revisar al acabar)
+# 17 falta implementarlo
+# 18 falta implementarlo
+# 19 Hecho
+# 20 #21 #22 YAPPING
+
+
 print("Initializing simulation, pls wait ...")
 
-k_def = 1
+k_def = 1 # duplicado xd, quitar uno
 k = 1
 
 nstep = int(4e3)
