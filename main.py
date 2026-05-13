@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 
 from include import cts, analitical, IC
 from include import plotter
-from optimizer import optimize_case_I
+from include.optimizer import optimize_case_I
 
 
 """
