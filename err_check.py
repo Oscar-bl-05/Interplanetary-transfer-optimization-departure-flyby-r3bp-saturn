@@ -2,7 +2,9 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from include import cts, analitical, IC
 
-k_test = 1.10  # asegurar que llega a R_B
+k_test = 1  # asegurar que llega a R_B
+theta_test = -0.4814677511186809
+dv_test = 7.322992225754916
 
 def R(t, R_orb, frec):
     return np.array([
@@ -40,10 +42,15 @@ def hit_state(atol, rtol):
     tf = float(analitical.T_transfer)
     dt = (tf - t0) / 160.0
 
-    baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=analitical.theta_0I, delta0=IC.delta0)
+    baseY0, t_hat_theta = IC.ICtoY0(
+    IC.rho0,
+    theta0=theta_test,
+    delta0=IC.delta0
+)
 
-    V_ign = k_test * analitical.deltaV_ignI * t_hat_theta
-    Y0 = baseY0 + np.array([0.0, 0.0, V_ign[0], V_ign[1]])
+    V_ign = dv_test * t_hat_theta
+    Y0 = baseY0.copy()
+    Y0[2:4] += V_ign
 
     sol = solve_ivp(
         F, (t0, tf), Y0,
