@@ -204,7 +204,7 @@ best_caseII = optimize_case_II(
     rtol=rtol,
     tf=tf,
     t0=t0,
-    n_grid_deltav=100,
+    n_grid_deltav=200,
     n_grid_theta=10,
     n_refines=1,
 )

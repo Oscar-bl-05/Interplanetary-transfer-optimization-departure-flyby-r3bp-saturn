@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.integrate import solve_ivp
-from include import cts, analitical, IC
+from include import cts, analitical, IC, plotter ##quitar ploter despues de debugear
 
 def optimize_case_I(F, nstep, atol, rtol, tf, t0=0.0, n_grid=10, n_refines=2,
                     theta_center=None, dv_center=None, theta_span=0.5, dv_span=None):
@@ -97,11 +97,11 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
     
     if theta_center is None:
         theta_center = float(analitical.theta_0II)
-    caseII_deltav_factor = 0.7
+    caseII_deltav_factor = 0.65
     if dv_center is None:
         dv_center = float(analitical.deltaV_ignI*caseII_deltav_factor)
     if dv_span is None:
-        dv_span = 0.3 * dv_center
+        dv_span = 0.05 * dv_center
 
     def reach_RB(t, Y):
         return np.hypot(Y[0], Y[1]) - cts.R_orb_B
@@ -126,7 +126,17 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
             events=reach_RB,
             max_step=dt
         )
+        ############################################
+        def R(t, R_orb, frec):
+            return np.array([
+                R_orb * np.cos(frec * t - IC.delta0),
+                R_orb * np.sin(frec * t - IC.delta0),
+            ])
 
+        if False:
+            dt_plot=(tf - t0) / nstep
+            plotter.plot2D(sol.t, dt_plot, sol.y, R)
+        ##############################################
         if len(sol.t_events[0]) == 0:
             return None
 
