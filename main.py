@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 
 from include import cts, analitical, IC
 from include import plotter
-from include.optimizer import optimize_case_I
+from include.optimizer import optimize_case_I, optimize_case_II
 
 
 """
@@ -75,7 +75,7 @@ def reach_RB(t, Y):
 reach_RB.terminal = True
 reach_RB.direction = 1
 
-
+"""
 print("\nStarting optimization...")
 t_opt_start = time.time()
 
@@ -191,3 +191,29 @@ print("\nPlotting optimum trajectory and errors...")
 
 plotter.plot_solution(sol_plot.t, sol_plot.y, sol_plot_ref.y)
 plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
+"""
+
+print("\nInitializing case II simulation")
+
+t_simII_start = time.time()
+
+best_caseII = optimize_case_II(
+    F=F,
+    nstep=nstep_opt,
+    atol=atol,
+    rtol=rtol,
+    tf=tf,
+    t0=t0,
+    n_grid_deltav=100,
+    n_grid_theta=10,
+    n_refines=1,
+)
+
+t_simII_end = time.time()
+
+print("Case two optimization time =", t_simII_end-t_simII_start)
+if best_caseII != None:
+    print("Found best ii")
+    print(best_caseII)
+else:
+    print("No valid solutions found")

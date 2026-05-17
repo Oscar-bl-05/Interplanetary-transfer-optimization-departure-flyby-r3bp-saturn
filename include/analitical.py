@@ -2,7 +2,8 @@ from . import cts
 from . import IC
 from numpy import sqrt, arcsin
 
-transfertime_safety_margin = 1.2
+transfertime_safety_margin = 1.25
+caseII_transfertime_multiplier = 3 
 # T_transfer = transfertime_safety_margin * 3 * cts.pi * sqrt((cts.R_orb_A + cts.R_orb_B)**3/(8*cts.mu_sun))
 T_transfer = transfertime_safety_margin * cts.pi * sqrt((cts.R_orb_A + cts.R_orb_B)**3/(8*cts.mu_sun))
 # Cts 5.1(Parámetros de integración)
