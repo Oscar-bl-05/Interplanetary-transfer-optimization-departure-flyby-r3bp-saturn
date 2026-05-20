@@ -68,25 +68,59 @@ reach_RB.direction = 1
 
 print("\nInitializing case II simulation")
 
-t_simII_start = time.time()
+t_case_II_start = time.time()
 
-best_caseII = optimize_case_II(
-    F=F,
-    nstep=nstep_opt,
-    atol=atol,
-    rtol=rtol,
-    tf=tf,
-    t0=t0,
-    n_grid_deltav=200,
-    n_grid_theta=10,
-    n_refines=1,
+theta_II = float(analitical.theta_0II)
+dv_ign_II = float(analitical.deltaV_ignII)
+
+# Initial condition
+baseY0, t_hat_theta = IC.ICtoY0(
+    IC.rho0,
+    theta0=theta_II,
+    delta0=IC.delta0,
 )
 
-t_simII_end = time.time()
+V_ign = dv_ign_II * t_hat_theta
+Y0 = baseY0.copy()
+Y0[2:4] += V_ign
 
-print("Case two optimization time =", t_simII_end-t_simII_start)
-if best_caseII != None:
-    print("Found best ii")
-    print(best_caseII)
+dt_event = (tf - t0) / nstep_opt
+
+t_sim_II_start = time.time()
+
+sol = solve_ivp(
+    F,
+    (t0, tf),
+    Y0,
+    method="DOP853",
+    atol=atol,
+    rtol=rtol,
+    events=reach_RB,
+    max_step=dt_event,
+)
+
+t_sim_II_end = time.time()
+
+print("\n--- CASE II checks (without optimize) ---")
+print("solver success =", sol.success)
+print("solver message =", sol.message)
+print("sim runtime (s) =", t_sim_II_end - t_sim_II_start)
+print("total runtime (s) =", t_sim_II_end - t_case_II_start)
+
+if len(sol.t_events[0]) == 0:
+    rmax = np.hypot(sol.y[0], sol.y[1]).max()
+
+    print("\nDid NOT reach R_B with non-optimized Case II parameters.")
+    print("r_max =", rmax, "km")
+    print("R_B =", float(cts.R_orb_B), "km")
+    print("missing =", float(cts.R_orb_B) - rmax, "km")
+
 else:
-    print("No valid solutions found")
+    t_hit = float(sol.t_events[0][0])
+    y_hit = sol.y_events[0][0]
+    r_hit = float(np.hypot(y_hit[0], y_hit[1]))
+
+    print("\n--- HIT (without optimize) ---")
+    print("t_hit (years) =", t_hit / (365.25 * 24 * 3600))
+    print("r_hit (km) =", r_hit)
+    print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
