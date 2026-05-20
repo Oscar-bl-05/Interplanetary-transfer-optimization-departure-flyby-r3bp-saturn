@@ -37,7 +37,7 @@ nstep_opt = 750
 nstep_plot = 4000
 
 t0 = 0.0
-tf = float(analitical.T_transfer)
+tf = float(analitical.T_transfer_case_II) # be careful!!!
 
 
 def R(t, R_orb, frec):
