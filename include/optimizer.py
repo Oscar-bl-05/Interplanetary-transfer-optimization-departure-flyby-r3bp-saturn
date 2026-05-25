@@ -99,14 +99,22 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         theta_center = float(analitical.theta_0II)
     caseII_deltav_factor = 0.65
     if dv_center is None:
-        dv_center = float(analitical.deltaV_ignI*caseII_deltav_factor)
+        #dv_center = float(analitical.deltaV_ignI*caseII_deltav_factor)
+        dv_center = analitical.completely_not_pulled_out_of_my_ass_value
     if dv_span is None:
-        dv_span = 0.05 * dv_center
+        dv_span = 0.15 * dv_center
 
     def reach_RB(t, Y):
         return np.hypot(Y[0], Y[1]) - cts.R_orb_B
     reach_RB.terminal = True
     reach_RB.direction = 1
+
+    if False:
+        def reach_desired_a(t, Y):
+            return np.hypot(Y[0], Y[1]) - analitical.desired_R_max
+        reach_desired_a.terminal = True
+        reach_desired_a.direction = 1
+    
 
     def v_circ_at_r(x, y):
         r = np.hypot(x, y)
@@ -123,7 +131,7 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
             F, (t0, tf), Y0,
             method="DOP853",
             atol=atol, rtol=rtol,
-            events=reach_RB,
+            events=reach_RB, #para hallar el deltaV hasta conseguir (a) deseado cambiar evento a reach_desired_a()
             max_step=dt
         )
         ############################################
@@ -145,7 +153,7 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
 
         v_target = v_circ_at_r(y_fin[0], y_fin[1])
         v_sc = np.array([y_fin[2], y_fin[3]])
-        dv_fin = np.linalg.norm(v_target - v_sc)
+        dv_fin = np.linalg.norm(v_target - v_sc) #* 0 ###### OJO, quitar el *0 ###############################################################
         dv_tot = abs(dv_ign) + abs(dv_fin)
 
         return {

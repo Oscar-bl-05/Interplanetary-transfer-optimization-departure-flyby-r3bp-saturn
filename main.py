@@ -37,7 +37,7 @@ nstep_opt = 750
 nstep_plot = 4000
 
 t0 = 0.0
-tf = float(analitical.T_transfer_case_II) # be careful!!!
+tf = float(analitical.T_transfer_case_I) # overwritten down for case II
 
 
 def R(t, R_orb, frec):
@@ -194,6 +194,8 @@ plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
 """
 
 print("\nInitializing case II simulation")
+
+tf = float(analitical.T_transfer_case_II) # careful, padawan
 
 t_simII_start = time.time()
 
