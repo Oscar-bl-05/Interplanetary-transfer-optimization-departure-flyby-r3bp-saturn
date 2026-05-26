@@ -18,5 +18,5 @@ R_orb_B = int(1.4267254e9)    # km (radio orbital medio Saturno)
 T_orb_B = int(9.29e8)         # s
 frec_B = 2*pi/T_orb_B
 
-
-
+earth_SOI_radius = R_orb_A * (mu_earth / mu_sun)**(2.0 / 5.0) # Radio esfera de influencia terrestre
+year_to_s = 365 * 24 * 3600

@@ -89,7 +89,6 @@ deltaV_ignII = sqrt(v_infII*v_infII + 2*cts.mu_earth/IC.rho0) - sqrt(cts.mu_eart
 
 # --- THETA DE IGNICIÓN --
 
-
 # Caso I:
 # v_inf = deltaV_1H
 e_I = 1 + (IC.rho0*deltaV_1H*deltaV_1H)/cts.mu_earth
@@ -97,9 +96,6 @@ theta_0I = -2 * arcsin(1/e_I)
 
 # Caso II:
 # v_inf esta contenido entre [0, deltaV_1H]
-#e_II_old = 1 + (IC.rho0*v_infII*v_infII)/cts.mu_earth 
-#theta_0II_old = -2 * arcsin(1/e_II_old)
-
 # v_infII viene de la primera elipse resonante.
 e_II = 1 + (IC.rho0*v_infII*v_infII)/cts.mu_earth 
 theta_0II = -2 * arcsin(1/e_II)

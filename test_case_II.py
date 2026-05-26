@@ -7,11 +7,7 @@ from include import cts, analitical, IC
 from include import plotter
 
 
-"""
-Case II test script for the Earth-Saturn transfer problem.
-
-"""
-
+# Case II test script for the Earth-Saturn transfer problem.
 
 print("Initializing simulation, pls wait ...")
 
@@ -101,6 +97,32 @@ sol = solve_ivp(
 
 t_sim_II_end = time.time()
 
+earth_x = cts.R_orb_A * np.cos(cts.frec_A * sol.t - IC.delta0)
+earth_y = cts.R_orb_A * np.sin(cts.frec_A * sol.t - IC.delta0)
+
+earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
+
+after_departure = sol.t > 0.5 * cts.year_to_s
+
+earth_distance_after_departure = earth_distance[after_departure]
+time_after_departure = sol.t[after_departure]
+
+closest_index = earth_distance_after_departure.argmin()
+
+minimum_earth_distance = earth_distance_after_departure[closest_index]
+time_of_closest_earth_return = time_after_departure[closest_index]
+
+print("\n--- CASE II INITIAL GUESS ---")
+print("theta_II (rad) =", theta_II)
+print("dv_ign_II (km/s) =", dv_ign_II)
+print("v_infII (km/s) =", float(analitical.v_infII))
+print("deltaV_ignI analytical (km/s) =", float(analitical.deltaV_ignI))
+print("dv_ign_II < deltaV_ignI: ", dv_ign_II < float(analitical.deltaV_ignI))
+print("T_resonance (years) =", float(analitical.T_resonance) / (365.25 * 24 * 3600))
+print("desired_a (km) =", float(analitical.desired_a))
+print("desired_R_max (km) =", float(analitical.desired_R_max))
+print("tf_case_II (years) =", tf / (365.25 * 24 * 3600))
+
 print("\n--- CASE II checks (without optimize) ---")
 print("solver success =", sol.success)
 print("solver message =", sol.message)
@@ -124,3 +146,9 @@ else:
     print("t_hit (years) =", t_hit / (365.25 * 24 * 3600))
     print("r_hit (km) =", r_hit)
     print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
+
+print("\n--- EARTH RETURN CHECK ---")
+print("minimum Earth distance after departure (km) =", minimum_earth_distance)
+print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+print("Earth SOI radius (km) =", cts.earth_SOI_radius)
+print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
