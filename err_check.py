@@ -39,7 +39,7 @@ reach_RB.direction = 1
 
 def hit_state(atol, rtol):
     t0 = 0.0
-    tf = float(analitical.T_transfer)
+    tf = float(analitical.T_transfer_case_I)
     dt = (tf - t0) / 160.0
 
     baseY0, t_hat_theta = IC.ICtoY0(
