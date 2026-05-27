@@ -193,6 +193,9 @@ plotter.plot_solution(sol_plot.t, sol_plot.y, sol_plot_ref.y)
 plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
 """
 
+
+
+########## ESTO AHORA EN test_case_II  (borrar de main.py antes de mergear con rama main)
 print("\nInitializing case II simulation")
 
 tf = float(analitical.T_transfer_case_II) # careful, padawan
@@ -209,6 +212,7 @@ best_caseII = optimize_case_II(
     n_grid_deltav=200,
     n_grid_theta=10,
     n_refines=1,
+    narrowband_exponent=2
 )
 
 t_simII_end = time.time()

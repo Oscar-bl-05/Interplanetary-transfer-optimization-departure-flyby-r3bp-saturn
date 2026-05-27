@@ -4,7 +4,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 from include import cts, analitical, IC
-from include import plotter
+from include import plotter, optimizer
 
 
 # Case II test script for the Earth-Saturn transfer problem.
@@ -137,6 +137,86 @@ if len(sol.t_events[0]) == 0:
     print("R_B =", float(cts.R_orb_B), "km")
     print("missing =", float(cts.R_orb_B) - rmax, "km")
 
+    print("\n--- EARTH RETURN CHECK ---")
+    print("minimum Earth distance after departure (km) =", minimum_earth_distance)
+    print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+    print("Earth SOI radius (km) =", cts.earth_SOI_radius)
+    print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
+
+    if input("Do you want to attempt to find a valid solution by doing a closeup sweep ? (Y/n) : \n") in ["Y", "y"]:
+
+        print("\n--- CASE II SWEEP GUESS ---") 
+        nbe = 4
+        n_grid_deltav = 20
+        n_grid_theta=10
+        print(f"dv_ign_II = {dv_ign_II} [km/s]")
+        print(f"dv_span =  +-{dv_ign_II*(1/2**nbe)}")
+        print(f"# of deltaV values = {n_grid_deltav}")
+        print(f"theta_II = {theta_II} [rad]")
+        print(f"theta_II_span = +-{0.5} [rad]")
+        print(f"# of theta values = {n_grid_theta}")
+        print(f"Testing {n_grid_theta*n_grid_deltav} configurations ; estimated time = {n_grid_theta*n_grid_deltav*0.085} [s]")
+
+        tf = float(analitical.T_transfer_case_II) # careful, padawan
+
+        t_simII_start = time.time()
+
+        best_caseII = optimizer.optimize_case_II(
+            F=F,
+            nstep=nstep_opt,
+            atol=atol,
+            rtol=rtol,
+            tf=tf,
+            t0=t0,
+            n_grid_deltav=n_grid_deltav,
+            n_grid_theta=n_grid_theta,
+            n_refines=1,
+            narrowband_exponent=nbe
+        )
+
+        t_simII_end = time.time()
+        print("Case two sweep time =", t_simII_end-t_simII_start)
+
+        if best_caseII != None:
+            print("Found best ii")
+            print(best_caseII)
+        else:
+            print("No valid solutions found")
+            print("\n--- Trying to minimize minimun Earth distance ---")
+            print(f"estimated time = {n_grid_theta*n_grid_deltav*0.085*4} [s]")
+
+            best_caseII = optimizer.optimize_case_II(
+                F=F,
+                nstep=nstep_opt,
+                atol=atol,
+                rtol=rtol,
+                tf=tf,
+                t0=t0,
+                n_grid_deltav=n_grid_deltav,
+                n_grid_theta=n_grid_theta,
+                n_refines=4,
+                narrowband_exponent=nbe,
+                mode="MED"
+            )
+            reached_R_B = best_caseII["reached_R_B"]
+            if reached_R_B == True:
+                print("Valid solution:")
+                print(best_caseII) # cambiar formato para facer mais bonito
+            if reached_R_B == False:
+                print("kys")
+                print("No valid solutions found")
+                print(best_caseII)
+
+            print("\n--- EARTH RETURN CHECK ---")
+            print("minimum Earth distance after departure (km) =", best_caseII["MED"])
+            print("time of closest Earth return (years) =", best_caseII["t_MED"] / cts.year_to_s)
+            print("Earth SOI radius (km) =", cts.earth_SOI_radius)
+            print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
+
+
+    else:
+        print("...")
+
 else:
     t_hit = float(sol.t_events[0][0])
     y_hit = sol.y_events[0][0]
@@ -147,8 +227,10 @@ else:
     print("r_hit (km) =", r_hit)
     print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
 
-print("\n--- EARTH RETURN CHECK ---")
-print("minimum Earth distance after departure (km) =", minimum_earth_distance)
-print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
-print("Earth SOI radius (km) =", cts.earth_SOI_radius)
-print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
+    print("\n--- EARTH RETURN CHECK ---")
+    print("minimum Earth distance after departure (km) =", minimum_earth_distance)
+    print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+    print("Earth SOI radius (km) =", cts.earth_SOI_radius)
+    print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
+
+

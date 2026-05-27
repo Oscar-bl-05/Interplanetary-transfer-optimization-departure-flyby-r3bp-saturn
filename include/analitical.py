@@ -85,6 +85,7 @@ v_infII = v_perihelion_resonance - v_earth
 deltaV_ignII = sqrt(v_infII*v_infII + 2*cts.mu_earth/IC.rho0) - sqrt(cts.mu_earth/IC.rho0)
 
 #completely_not_pulled_out_of_my_ass_value = 4.434731316839158
+completely_not_pulled_out_of_my_ass_value = deltaV_ignII  # luego cambiar nombre en optimizer y test_case_ii
 
 
 # --- THETA DE IGNICIÓN --

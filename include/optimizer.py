@@ -93,7 +93,7 @@ def optimize_case_I(F, nstep, atol, rtol, tf, t0=0.0, n_grid=10, n_refines=2,
 
     return best
 
-def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_theta=10, n_refines=2, theta_center=None, dv_center=None, theta_span=0.5, dv_span=None):
+def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_theta=10, n_refines=2, theta_center=None, dv_center=None, theta_span=0.5, dv_span=None, narrowband_exponent = 2, mode = "deltaV"):
     
     if theta_center is None:
         theta_center = float(analitical.theta_0II)
@@ -102,7 +102,7 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         #dv_center = float(analitical.deltaV_ignI*caseII_deltav_factor)
         dv_center = analitical.completely_not_pulled_out_of_my_ass_value
     if dv_span is None:
-        dv_span = 0.15 * dv_center
+        dv_span = 1/(2**narrowband_exponent) * dv_center ## a unit increase in the narrowband exponent halves the dv span
 
     def reach_RB(t, Y):
         return np.hypot(Y[0], Y[1]) - cts.R_orb_B
@@ -121,6 +121,24 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         vmod = np.sqrt(cts.mu_sun / r)
         t_hat = np.array([-y / r, x / r])
         return vmod * t_hat
+    
+    def get_MED(sol):
+        earth_x = cts.R_orb_A * np.cos(cts.frec_A * sol.t - IC.delta0)
+        earth_y = cts.R_orb_A * np.sin(cts.frec_A * sol.t - IC.delta0)
+
+        earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
+
+        after_departure = sol.t > 0.5 * cts.year_to_s
+
+        earth_distance_after_departure = earth_distance[after_departure]
+        time_after_departure = sol.t[after_departure]
+
+        closest_index = earth_distance_after_departure.argmin()
+
+        minimum_earth_distance = earth_distance_after_departure[closest_index]
+        time_of_closest_earth_return = time_after_departure[closest_index]
+
+        return minimum_earth_distance, time_of_closest_earth_return
 
     def evaluate(theta0, dv_ign, dt):
         baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta0, delta0=IC.delta0)
@@ -145,28 +163,70 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
             dt_plot=(tf - t0) / nstep
             plotter.plot2D(sol.t, dt_plot, sol.y, R)
         ##############################################
-        if len(sol.t_events[0]) == 0:
-            return None
+        if mode == "deltaV":
+            if len(sol.t_events[0]) == 0:
+                return None
 
-        t_fin = sol.t_events[0][0]
-        y_fin = sol.y_events[0][0]
 
-        v_target = v_circ_at_r(y_fin[0], y_fin[1])
-        v_sc = np.array([y_fin[2], y_fin[3]])
-        dv_fin = np.linalg.norm(v_target - v_sc) #* 0 ###### OJO, quitar el *0 ###############################################################
-        dv_tot = abs(dv_ign) + abs(dv_fin)
+            t_fin = sol.t_events[0][0]
+            y_fin = sol.y_events[0][0]
 
-        return {
-            "theta": theta0,
-            "dv_ign": dv_ign,
-            "dv_fin": dv_fin,
-            "dv_tot": dv_tot,
-            "t_fin": t_fin,
-            "y_fin": y_fin,
-            "sol": sol
-        }
+            v_target = v_circ_at_r(y_fin[0], y_fin[1])
+            v_sc = np.array([y_fin[2], y_fin[3]])
+            dv_fin = np.linalg.norm(v_target - v_sc) #* 0 ###### OJO, quitar el *0 ###############################################################
+            dv_tot = abs(dv_ign) + abs(dv_fin)
 
-    def grid_search(theta_c, dv_c, th_span, dv_sp):
+
+            return {
+                "theta": theta0,
+                "dv_ign": dv_ign,
+                "dv_fin": dv_fin,
+                "dv_tot": dv_tot,
+                "t_fin": t_fin,
+                "y_fin": y_fin,
+                "sol": sol,
+            }
+        
+        elif mode == "MED":
+
+            minimum_earth_distance, time_of_closest_earth_return = get_MED(sol)
+
+            if len(sol.t_events[0]) != 0:
+                reached_RB = True
+                t_fin = sol.t_events[0][0]
+                y_fin = sol.y_events[0][0]
+
+                v_target = v_circ_at_r(y_fin[0], y_fin[1])
+                v_sc = np.array([y_fin[2], y_fin[3]])
+                dv_fin = np.linalg.norm(v_target - v_sc) #* 0 ###### OJO, quitar el *0 ###############################################################
+                dv_tot = abs(dv_ign) + abs(dv_fin)
+
+                return {
+                    "reached_R_B": reached_RB,
+                    "theta": theta0,
+                    "dv_ign": dv_ign,
+                    "dv_fin": dv_fin,
+                    "dv_tot": dv_tot,
+                    "t_fin": t_fin,
+                    "y_fin": y_fin,
+                    "sol": sol,
+                    "MED": minimum_earth_distance,
+                    "t_MED": time_of_closest_earth_return
+                }
+   
+            else:
+                reached_RB = False
+
+                return {
+                    "reached_R_B": reached_RB,
+                    "theta": theta0,
+                    "dv_ign": dv_ign,
+                    "sol": sol,
+                    "MED": minimum_earth_distance,
+                    "t_MED": time_of_closest_earth_return
+                }
+
+    def grid_search_deltaV(theta_c, dv_c, th_span, dv_sp):
         dt = (tf - t0) / nstep
         theta_vals = np.linspace(theta_c - th_span, theta_c + th_span, n_grid_theta)
         dv_vals = np.linspace(dv_c - dv_sp, dv_c + dv_sp, n_grid_deltav)
@@ -186,18 +246,54 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
                     best = out
 
         return best
+    
+    def grid_search_MED(theta_c, dv_c, th_span, dv_sp):
+        dt = (tf - t0) / nstep
+        theta_vals = np.linspace(theta_c - th_span, theta_c + th_span, n_grid_theta)
+        dv_vals = np.linspace(dv_c - dv_sp, dv_c + dv_sp, n_grid_deltav)
 
-    best = grid_search(theta_center, dv_center, theta_span, dv_span)
-    if best is None:
-        return None
+        best = None
+        best_cost = np.inf
 
-    th_span = theta_span
-    dv_sp = dv_span
-    for _ in range(n_refines):
-        th_span *= 0.25
-        dv_sp *= 0.25
-        best = grid_search(best["theta"], best["dv_ign"], th_span, dv_sp)
+        for th in theta_vals:
+            for dv in dv_vals:
+                if dv <= 0:
+                    continue
+                out = evaluate(th, dv, dt)
+                if out is None:
+                    continue
+                if out["MED"] < best_cost:
+                    best_cost = out["MED"]
+                    best = out
+
+        return best
+
+    if mode == "deltaV":
+        best = grid_search_deltaV(theta_center, dv_center, theta_span, dv_span)
         if best is None:
             return None
+
+        th_span = theta_span
+        dv_sp = dv_span
+        for _ in range(n_refines):
+            th_span *= 0.25
+            dv_sp *= 0.25
+            best = grid_search_deltaV(best["theta"], best["dv_ign"], th_span, dv_sp)
+            if best is None:
+                return None
+            
+    elif mode == "MED":
+
+        best = grid_search_MED(theta_center, dv_center, theta_span, dv_span)
+        th_span = theta_span
+        dv_sp = dv_span
+        for _ in range(n_refines):
+            th_span *= 0.25
+            dv_sp *= 0.25
+            best = grid_search_MED(best["theta"], best["dv_ign"], th_span, dv_sp)
+        
+    else:
+        print("Invalid 'mode' argument")
+        return None
 
     return best
