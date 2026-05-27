@@ -66,8 +66,11 @@ print("\nInitializing case II simulation")
 
 t_case_II_start = time.time()
 
-theta_II = float(analitical.theta_0II)
-dv_ign_II = float(analitical.deltaV_ignII)
+#theta_II = float(analitical.theta_0II)
+#dv_ign_II = float(analitical.deltaV_ignII)
+
+theta_II = -0.9874019972342188
+dv_ign_II = 4.322797781064377
 
 # Initial condition
 baseY0, t_hat_theta = IC.ICtoY0(
@@ -133,9 +136,9 @@ if len(sol.t_events[0]) == 0:
     rmax = np.hypot(sol.y[0], sol.y[1]).max()
 
     print("\nDid NOT reach R_B with non-optimized Case II parameters.")
-    print("r_max =", rmax, "km")
-    print("R_B =", float(cts.R_orb_B), "km")
-    print("missing =", float(cts.R_orb_B) - rmax, "km")
+    print("r_max =", int(rmax//1000000), "Gm")
+    print("R_B =", int(float(cts.R_orb_B)//1000000), "Gm")
+    print("missing =", int((float(cts.R_orb_B) - rmax)//1000000), "Gm")
 
     print("\n--- EARTH RETURN CHECK ---")
     print("minimum Earth distance after departure (km) =", minimum_earth_distance)
@@ -146,7 +149,7 @@ if len(sol.t_events[0]) == 0:
     if input("Do you want to attempt to find a valid solution by doing a closeup sweep ? (Y/n) : \n") in ["Y", "y"]:
 
         print("\n--- CASE II SWEEP GUESS ---") 
-        nbe = 4
+        nbe = 6
         n_grid_deltav = 20
         n_grid_theta=10
         print(f"dv_ign_II = {dv_ign_II} [km/s]")
@@ -194,7 +197,7 @@ if len(sol.t_events[0]) == 0:
                 t0=t0,
                 n_grid_deltav=n_grid_deltav,
                 n_grid_theta=n_grid_theta,
-                n_refines=4,
+                n_refines=6,
                 narrowband_exponent=nbe,
                 mode="MED"
             )

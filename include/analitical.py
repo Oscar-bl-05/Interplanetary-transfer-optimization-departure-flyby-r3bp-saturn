@@ -86,6 +86,7 @@ deltaV_ignII = sqrt(v_infII*v_infII + 2*cts.mu_earth/IC.rho0) - sqrt(cts.mu_eart
 
 #completely_not_pulled_out_of_my_ass_value = 4.434731316839158
 completely_not_pulled_out_of_my_ass_value = deltaV_ignII  # luego cambiar nombre en optimizer y test_case_ii
+#theta = -0.9874019972342188 deltaV = 4.322797781064377 > encuentro con la Tierra tras 2 años
 
 
 # --- THETA DE IGNICIÓN --
