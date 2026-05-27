@@ -262,6 +262,15 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
                 out = evaluate(th, dv, dt)
                 if out is None:
                     continue
+
+                # Chekear que MED este por encima del radio inicial de la nave (1.1 x R_A)
+                if out["MED"] <= IC.rho0:
+                    continue
+                
+                # Chekear que MED esté dentro de la SOI
+                if out["MED"] >= cts.earth_SOI_radius:
+                    continue
+
                 if out["MED"] < best_cost:
                     best_cost = out["MED"]
                     best = out
