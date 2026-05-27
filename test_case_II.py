@@ -206,7 +206,6 @@ if len(sol.t_events[0]) == 0:
                 print("Valid solution:")
                 print(best_caseII) # cambiar formato para facer mais bonito
             if reached_R_B == False:
-                print("kys")
                 print("No valid solutions found")
                 print(best_caseII)
 
