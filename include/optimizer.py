@@ -139,6 +139,11 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         time_of_closest_earth_return = time_after_departure[closest_index]
 
         return minimum_earth_distance, time_of_closest_earth_return
+    
+    def get_r_max(sol):
+        r = np.hypot(sol.y[0], sol.y[1])
+        r_max = r[r.argmax()] # r.max() no me funcionaba????
+        return r_max
 
     def evaluate(theta0, dv_ign, dt):
         baseY0, t_hat_theta = IC.ICtoY0(IC.rho0, theta0=theta0, delta0=IC.delta0)
@@ -173,7 +178,7 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
 
             v_target = v_circ_at_r(y_fin[0], y_fin[1])
             v_sc = np.array([y_fin[2], y_fin[3]])
-            dv_fin = np.linalg.norm(v_target - v_sc) #* 0 ###### OJO, quitar el *0 ###############################################################
+            dv_fin = np.linalg.norm(v_target - v_sc)
             dv_tot = abs(dv_ign) + abs(dv_fin)
 
 
@@ -198,7 +203,7 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
 
                 v_target = v_circ_at_r(y_fin[0], y_fin[1])
                 v_sc = np.array([y_fin[2], y_fin[3]])
-                dv_fin = np.linalg.norm(v_target - v_sc) #* 0 ###### OJO, quitar el *0 ###############################################################
+                dv_fin = np.linalg.norm(v_target - v_sc)
                 dv_tot = abs(dv_ign) + abs(dv_fin)
 
                 return {
@@ -224,6 +229,47 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
                     "sol": sol,
                     "MED": minimum_earth_distance,
                     "t_MED": time_of_closest_earth_return
+                }
+            
+        elif mode == "deltaV*":
+
+            minimum_earth_distance, time_of_closest_earth_return = get_MED(sol)
+            r_max = get_r_max(sol) #podría implementarse de otra manera pero paso
+
+            if len(sol.t_events[0]) != 0:
+                reached_RB = True
+                t_fin = sol.t_events[0][0]
+                y_fin = sol.y_events[0][0]
+
+                v_target = v_circ_at_r(y_fin[0], y_fin[1])
+                v_sc = np.array([y_fin[2], y_fin[3]])
+                dv_fin = np.linalg.norm(v_target - v_sc)
+                dv_tot = abs(dv_ign) + abs(dv_fin)
+
+                return {
+                    "reached_R_B": reached_RB,
+                    "theta": theta0,
+                    "dv_ign": dv_ign,
+                    "dv_fin": dv_fin,
+                    "dv_tot": dv_tot,
+                    "t_fin": t_fin,
+                    "y_fin": y_fin,
+                    "sol": sol,
+                    "MED": minimum_earth_distance,
+                    "t_MED": time_of_closest_earth_return
+                }
+   
+            else:
+                reached_RB = False
+
+                return {
+                    "reached_R_B": reached_RB,
+                    "theta": theta0,
+                    "dv_ign": dv_ign,
+                    "sol": sol,
+                    "MED": minimum_earth_distance,
+                    "t_MED": time_of_closest_earth_return,
+                    "r_max": r_max
                 }
 
     def grid_search_deltaV(theta_c, dv_c, th_span, dv_sp):
@@ -253,7 +299,9 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         dv_vals = np.linspace(dv_c - dv_sp, dv_c + dv_sp, n_grid_deltav)
 
         best = None
-        best_cost = np.inf
+        best_MED = np.inf
+
+        reached_R_B = False
 
         for th in theta_vals:
             for dv in dv_vals:
@@ -263,16 +311,71 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
                 if out is None:
                     continue
 
+                if out["reached_R_B"] and (reached_R_B == False):
+                    print("OCURRIO")
+                    reached_R_B = True
+                    best_MED = out["dv_tot"]
+                    best = out
+                    
                 # Chekear que MED este por encima del radio inicial de la nave (1.1 x R_A)
                 if out["MED"] <= IC.rho0:
                     continue
                 
                 # Chekear que MED esté dentro de la SOI
                 if out["MED"] >= cts.earth_SOI_radius:
+                    #print("No gravity assist")
                     continue
 
-                if out["MED"] < best_cost:
-                    best_cost = out["MED"]
+                if (out["MED"] < best_MED) and not reached_R_B:
+                    best_MED = out["MED"]
+                    best = out
+
+        return best
+    
+    def grid_search_assisted_deltaV(theta_c, dv_c, th_span, dv_sp):
+        dt = (tf - t0) / nstep
+        theta_vals = np.linspace(theta_c - th_span, theta_c + th_span, n_grid_theta)
+        dv_vals = np.linspace(dv_c - dv_sp, dv_c + dv_sp, n_grid_deltav)
+
+        best = None
+        best_cost = np.inf
+        best_radius = 0
+
+        reached_R_B = False
+
+        for th in theta_vals:
+            for dv in dv_vals:
+                if dv <= 0:
+                    continue
+
+                out = evaluate(th, dv, dt)
+                if out is None:
+                    continue
+
+                if out["reached_R_B"]:
+                    if reached_R_B == False:
+                        print("OCURRIO")
+                        reached_R_B = True
+                        best_cost = out["dv_tot"]
+                        best = out
+                    elif (out["dv_tot"] < best_cost):
+                        best_cost = out["dv_tot"]
+                        best = out
+                    
+                # Chekear que MED este por encima del radio inicial de la nave (1.1 x R_A)
+                if out["MED"] <= IC.rho0:
+                    #print("Fell into the earth")
+                    if out["reached_R_B"]:
+                        print("reached RB after plunging into earth")
+                    continue
+                
+                # Chekear que MED esté dentro de la SOI
+                if out["MED"] >= cts.earth_SOI_radius:
+                    #print("No gravity assist")
+                    continue
+
+                if (out["r_max"] > best_radius) and not reached_R_B:
+                    best_radius = out["r_max"]
                     best = out
 
         return best
@@ -285,8 +388,8 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         th_span = theta_span
         dv_sp = dv_span
         for _ in range(n_refines):
-            th_span *= 0.25
-            dv_sp *= 0.25
+            th_span *= 0.1
+            dv_sp *= 0.1
             best = grid_search_deltaV(best["theta"], best["dv_ign"], th_span, dv_sp)
             if best is None:
                 return None
@@ -296,10 +399,26 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
         best = grid_search_MED(theta_center, dv_center, theta_span, dv_span)
         th_span = theta_span
         dv_sp = dv_span
+        if best is None:
+            print("Something went wrong")
+            return None
         for _ in range(n_refines):
-            th_span *= 0.25
-            dv_sp *= 0.25
+            th_span *= 0.1
+            dv_sp *= 0.1
             best = grid_search_MED(best["theta"], best["dv_ign"], th_span, dv_sp)
+    
+    elif mode == "deltaV*":
+
+        best = grid_search_assisted_deltaV(theta_center, dv_center, theta_span, dv_span)
+        th_span = theta_span
+        dv_sp = dv_span
+        if best is None:
+            print("Something went wrong")
+            return None
+        for _ in range(n_refines):
+            th_span *= 0.1
+            dv_sp *= 0.1
+            best = grid_search_assisted_deltaV(best["theta"], best["dv_ign"], th_span, dv_sp)
         
     else:
         print("Invalid 'mode' argument")

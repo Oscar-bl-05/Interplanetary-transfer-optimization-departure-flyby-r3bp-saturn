@@ -69,8 +69,8 @@ t_case_II_start = time.time()
 #theta_II = float(analitical.theta_0II)
 #dv_ign_II = float(analitical.deltaV_ignII)
 
-theta_II = -0.9874019972342188
-dv_ign_II = 4.322797781064377
+theta_II = -1
+dv_ign_II = 4.353579650764551#4.4157973640187055
 
 # Initial condition
 baseY0, t_hat_theta = IC.ICtoY0(
@@ -151,14 +151,14 @@ if len(sol.t_events[0]) == 0:
         print("\n--- CASE II SWEEP GUESS ---") 
         nbe = 6
         n_grid_deltav = 20
-        n_grid_theta=10
+        n_grid_theta = 10
         print(f"dv_ign_II = {dv_ign_II} [km/s]")
         print(f"dv_span =  +-{dv_ign_II*(1/2**nbe)}")
         print(f"# of deltaV values = {n_grid_deltav}")
         print(f"theta_II = {theta_II} [rad]")
         print(f"theta_II_span = +-{0.5} [rad]")
         print(f"# of theta values = {n_grid_theta}")
-        print(f"Testing {n_grid_theta*n_grid_deltav} configurations ; estimated time = {n_grid_theta*n_grid_deltav*0.085} [s]")
+        print(f"Testing {n_grid_theta*n_grid_deltav} configurations ; estimated time = {n_grid_theta*n_grid_deltav*0.085*1} [s]")
 
         tf = float(analitical.T_transfer_case_II) # careful, padawan
 
@@ -185,8 +185,9 @@ if len(sol.t_events[0]) == 0:
             print(best_caseII)
         else:
             print("No valid solutions found")
-            print("\n--- Trying to minimize minimun Earth distance ---")
-            print(f"estimated time = {n_grid_theta*n_grid_deltav*0.085*4} [s]")
+            #print("\n--- Trying to minimize minimun Earth distance ---")
+            print("\n--- Trying to maximize radius after gravity assist ---")
+            print(f"estimated time = {n_grid_theta*n_grid_deltav*0.085*6} [s]")
 
             best_caseII = optimizer.optimize_case_II(
                 F=F,
@@ -199,7 +200,7 @@ if len(sol.t_events[0]) == 0:
                 n_grid_theta=n_grid_theta,
                 n_refines=6,
                 narrowband_exponent=nbe,
-                mode="MED"
+                mode="deltaV*" #MED
             )
             reached_R_B = best_caseII["reached_R_B"]
             if reached_R_B == True:
