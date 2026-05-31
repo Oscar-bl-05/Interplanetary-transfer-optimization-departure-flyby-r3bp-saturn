@@ -100,7 +100,7 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
     caseII_deltav_factor = 0.65
     if dv_center is None:
         #dv_center = float(analitical.deltaV_ignI*caseII_deltav_factor)
-        dv_center = analitical.completely_not_pulled_out_of_my_ass_value
+        dv_center = analitical.deltaV_ignII
     if dv_span is None:
         dv_span = 1/(2**narrowband_exponent) * dv_center ## a unit increase in the narrowband exponent halves the dv span
 

@@ -8,7 +8,7 @@ from numpy import sqrt, arcsin, power
 transfertime_safety_factor = 1.25
 
 # Caso II:
-caseII_transfertime_multiplier = 3 # Earth rotations before grav assist
+caseII_transfertime_multiplier = 8 # Earth rotations before grav assist
 
 
 # --- TIEMPOS DE TRANSFERENCIA ---
@@ -33,7 +33,7 @@ T_transfer_case_II = transfertime_safety_factor * caseII_transfertime_multiplier
 # n_earth = 2
 
 resonance_n = 1
-resonance_n_earth = 2
+resonance_n_earth = caseII_transfertime_multiplier
 
 # Periodo objetivo de la primera elipse resonante
 T_resonance = (resonance_n_earth / resonance_n) * cts.T_orb_A

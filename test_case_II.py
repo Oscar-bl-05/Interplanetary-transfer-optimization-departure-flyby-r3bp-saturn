@@ -66,11 +66,11 @@ print("\nInitializing case II simulation")
 
 t_case_II_start = time.time()
 
-#theta_II = float(analitical.theta_0II)
-#dv_ign_II = float(analitical.deltaV_ignII)
+theta_II = float(analitical.theta_0II)
+dv_ign_II = float(analitical.deltaV_ignII)
 
-theta_II = -1
-dv_ign_II = 4.353579650764551#4.4157973640187055
+#theta_II = -1
+#dv_ign_II = 4.353579650764551#4.4157973640187055
 
 # Initial condition
 baseY0, t_hat_theta = IC.ICtoY0(
@@ -215,6 +215,52 @@ if len(sol.t_events[0]) == 0:
             print("time of closest Earth return (years) =", best_caseII["t_MED"] / cts.year_to_s)
             print("Earth SOI radius (km) =", cts.earth_SOI_radius)
             print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
+
+            # --- FLYBY ENERGY CHECK ---
+
+            sol_best = best_caseII["sol"]
+            t_MED = best_caseII["t_MED"]
+
+            dt_check = 10.0 * 24.0 * 3600.0  # 10 days
+
+            idx_before = np.abs(sol_best.t - (t_MED - dt_check)).argmin()
+            idx_after = np.abs(sol_best.t - (t_MED + dt_check)).argmin()
+
+            def heliocentric_energy_at(index):
+                x = sol_best.y[0, index]
+                y = sol_best.y[1, index]
+                vx = sol_best.y[2, index]
+                vy = sol_best.y[3, index]
+
+                r = np.hypot(x, y)
+                v2 = vx*vx + vy*vy
+
+                return 0.5 * v2 - cts.mu_sun / r
+
+            def heliocentric_speed_at(index):
+                vx = sol_best.y[2, index]
+                vy = sol_best.y[3, index]
+
+                return np.hypot(vx, vy)
+
+            energy_before = heliocentric_energy_at(idx_before)
+            energy_after = heliocentric_energy_at(idx_after)
+
+            speed_before = heliocentric_speed_at(idx_before)
+            speed_after = heliocentric_speed_at(idx_after)
+
+            print("\n--- FLYBY ENERGY CHECK ---")
+            print("t_before flyby (years) =", sol_best.t[idx_before] / cts.year_to_s)
+            print("t_MED (years) =", t_MED / cts.year_to_s)
+            print("t_after flyby (years) =", sol_best.t[idx_after] / cts.year_to_s)
+
+            print("heliocentric energy before (km^2/s^2) =", energy_before)
+            print("heliocentric energy after  (km^2/s^2) =", energy_after)
+            print("energy gain (km^2/s^2) =", energy_after - energy_before)
+
+            print("heliocentric speed before (km/s) =", speed_before)
+            print("heliocentric speed after  (km/s) =", speed_after)
+            print("speed gain (km/s) =", speed_after - speed_before)
 
 
     else:
