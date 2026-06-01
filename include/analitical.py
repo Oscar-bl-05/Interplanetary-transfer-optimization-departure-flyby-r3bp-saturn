@@ -8,7 +8,7 @@ from numpy import sqrt, arcsin, power
 transfertime_safety_factor = 1.25
 
 # Caso II:
-caseII_transfertime_multiplier = 3 # Earth rotations before grav assist
+caseII_transfertime_multiplier = 12 # Earth rotations before grav assist
 
 
 # --- TIEMPOS DE TRANSFERENCIA ---
@@ -33,7 +33,7 @@ T_transfer_case_II = transfertime_safety_factor * caseII_transfertime_multiplier
 # n_earth = 2
 
 resonance_n = 1
-resonance_n_earth = 2
+resonance_n_earth = 12
 
 # Periodo objetivo de la primera elipse resonante
 T_resonance = (resonance_n_earth / resonance_n) * cts.T_orb_A
@@ -90,6 +90,9 @@ completely_not_pulled_out_of_my_ass_value = deltaV_ignII  # luego cambiar nombre
 #theta = -0.99304435834533 deltaV = 4.3257973640187055 > encuentro con la Tierra tras 2 años a 7026km de altitud
 #theta = -1.5308861552203301 deltaV = 4.48087957581789 > encuentro con la Tierra tras 5 años a 8169 km altitud
 #theta = -1.7978132385536636, deltaV = 4.187940887607336 > encuentro con la tierra tras 7 años
+#theta= -0.43179004344489824, deltaV = 7.29095973305651
+
+#theta = -0.37405, deltaV = 7.269035 > SOLUCION VALIDA CASO II
 
 
 # --- THETA DE IGNICIÓN --

@@ -20,7 +20,7 @@ rtol = 1e-9
 atol_ref = np.array([1e-6, 1e-6, 1e-10, 1e-10])
 rtol_ref = 1e-12
 
-nstep_opt = 750
+nstep_opt = 8000
 nstep_plot = 4000
 
 t0 = 0.0
@@ -66,11 +66,14 @@ print("\nInitializing case II simulation")
 
 t_case_II_start = time.time()
 
-#theta_II = float(analitical.theta_0II)
-#dv_ign_II = float(analitical.deltaV_ignII)
+theta_II = float(analitical.theta_0II)
+dv_ign_II = float(analitical.deltaV_ignII)
 
-theta_II = -1
-dv_ign_II = 4.353579650764551#4.4157973640187055
+print(theta_II)
+print(dv_ign_II)
+
+#theta_II = -0.37405
+#dv_ign_II = 7.269035
 
 # Initial condition
 baseY0, t_hat_theta = IC.ICtoY0(
