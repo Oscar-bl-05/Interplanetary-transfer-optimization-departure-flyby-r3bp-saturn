@@ -201,3 +201,16 @@ else:
     print("post-flyby aphelion (Gm) =", best_caseII["r_apo_after"]/1000000)
 
 print("\nTotal runtime =", time.time() - t_start)
+
+dv_tot_case_I = 12.812252309834228
+dv_tot_case_II = best_caseII["dv_tot"]
+
+dv_saving = dv_tot_case_I - dv_tot_case_II
+dv_saving_percent = 100.0 * dv_saving / dv_tot_case_I
+
+print("\n--- CASE I vs CASE II ---")
+print("dv_tot_case_I (km/s) =", dv_tot_case_I)
+print("dv_tot_case_II (km/s) =", dv_tot_case_II)
+print("delta-v saving (km/s) =", dv_saving)
+print("delta-v saving (m/s) =", 1000.0 * dv_saving)
+print("relative saving (%) =", dv_saving_percent)
