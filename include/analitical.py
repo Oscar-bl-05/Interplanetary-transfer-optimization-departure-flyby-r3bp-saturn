@@ -84,17 +84,6 @@ v_infII = v_perihelion_resonance - v_earth
 # como en el Caso I, pero usando v_infII en lugar de deltaV_1H
 deltaV_ignII = sqrt(v_infII*v_infII + 2*cts.mu_earth/IC.rho0) - sqrt(cts.mu_earth/IC.rho0)
 
-#completely_not_pulled_out_of_my_ass_value = 4.434731316839158
-completely_not_pulled_out_of_my_ass_value = deltaV_ignII  # luego cambiar nombre en optimizer y test_case_ii
-#theta = -0.9874019972342188 deltaV = 4.322797781064377 > encuentro con la Tierra tras 2 años
-#theta = -0.99304435834533 deltaV = 4.3257973640187055 > encuentro con la Tierra tras 2 años a 7026km de altitud
-#theta = -1.5308861552203301 deltaV = 4.48087957581789 > encuentro con la Tierra tras 5 años a 8169 km altitud
-#theta = -1.7978132385536636, deltaV = 4.187940887607336 > encuentro con la tierra tras 7 años
-#theta= -0.43179004344489824, deltaV = 7.29095973305651
-
-#theta = -0.37405, deltaV = 7.269035 > SOLUCION VALIDA CASO II
-
-
 # --- THETA DE IGNICIÓN --
 
 # Caso I:

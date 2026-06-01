@@ -69,12 +69,6 @@ t_case_II_start = time.time()
 theta_II = float(analitical.theta_0II)
 dv_ign_II = float(analitical.deltaV_ignII)
 
-print(theta_II)
-print(dv_ign_II)
-
-#theta_II = -0.37405
-#dv_ign_II = 7.269035
-
 # Initial condition
 baseY0, t_hat_theta = IC.ICtoY0(
     IC.rho0,
@@ -163,7 +157,7 @@ if len(sol.t_events[0]) == 0:
         print(f"# of theta values = {n_grid_theta}")
         print(f"Testing {n_grid_theta*n_grid_deltav} configurations ; estimated time = {n_grid_theta*n_grid_deltav*0.085*1} [s]")
 
-        tf = float(analitical.T_transfer_case_II) # careful, padawan
+        tf = float(analitical.T_transfer_case_II)
 
         t_simII_start = time.time()
 
@@ -188,7 +182,6 @@ if len(sol.t_events[0]) == 0:
             print(best_caseII)
         else:
             print("No valid solutions found")
-            #print("\n--- Trying to minimize minimun Earth distance ---")
             print("\n--- Trying to maximize radius after gravity assist ---")
             print(f"estimated time = {n_grid_theta*n_grid_deltav*0.085*6} [s]")
 
