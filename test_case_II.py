@@ -1,13 +1,10 @@
 import time
-
 import numpy as np
 from scipy.integrate import solve_ivp
 
 from include import cts, analitical, IC
-from include import plotter, optimizer
+from include import optimizer
 
-
-# Case II test script for the Earth-Saturn transfer problem.
 
 print("Initializing simulation, pls wait ...")
 
@@ -15,16 +12,8 @@ print("Initializing simulation, pls wait ...")
 atol = np.array([1e-2, 1e-2, 1e-6, 1e-6])
 rtol = 1e-9
 
-# Reference tolerances used only for plotting error curves.
-# The tolerance validation itself is done in err_check.py.
-atol_ref = np.array([1e-6, 1e-6, 1e-10, 1e-10])
-rtol_ref = 1e-12
-
-nstep_opt = 8000
-nstep_plot = 4000
-
+nstep_opt = 750
 t0 = 0.0
-tf = float(analitical.T_transfer_case_II)
 
 
 def R(t, R_orb, frec):
@@ -46,6 +35,7 @@ def F(t, Y):
 
     dx = x - Rx
     dy = y - Ry
+
     dm = np.hypot(dx, dy)
     dm3 = 1.0 / (dm**3)
 
@@ -55,135 +45,193 @@ def F(t, Y):
     return np.array([vx, vy, ax, ay])
 
 
-def reach_RB(t, Y):
-    return np.hypot(Y[0], Y[1]) - cts.R_orb_B
+def check_initial_guess(resonance):
+    tf = resonance["T_transfer_case_II"]
 
+    theta_II = resonance["theta_0II"]
+    dv_ign_II = resonance["deltaV_ignII"]
 
-reach_RB.terminal = True
-reach_RB.direction = 1
+    baseY0, t_hat_theta = IC.ICtoY0(
+        IC.rho0,
+        theta0=theta_II,
+        delta0=IC.delta0,
+    )
 
-print("\nInitializing case II simulation")
+    V_ign = dv_ign_II * t_hat_theta
 
-t_case_II_start = time.time()
+    Y0 = baseY0.copy()
+    Y0[2:4] += V_ign
 
-theta_II = float(analitical.theta_0II)
-dv_ign_II = float(analitical.deltaV_ignII)
+    def reach_RB(t, Y):
+        return np.hypot(Y[0], Y[1]) - cts.R_orb_B
 
-# Initial condition
-baseY0, t_hat_theta = IC.ICtoY0(
-    IC.rho0,
-    theta0=theta_II,
-    delta0=IC.delta0,
-)
+    reach_RB.terminal = True
+    reach_RB.direction = 1
 
-V_ign = dv_ign_II * t_hat_theta
-Y0 = baseY0.copy()
-Y0[2:4] += V_ign
+    dt_event = (tf - t0) / nstep_opt
 
-dt_event = (tf - t0) / nstep_opt
+    sol = solve_ivp(
+        F,
+        (t0, tf),
+        Y0,
+        method="DOP853",
+        atol=atol,
+        rtol=rtol,
+        events=reach_RB,
+        max_step=dt_event,
+    )
 
-t_sim_II_start = time.time()
+    earth_x = cts.R_orb_A * np.cos(cts.frec_A * sol.t - IC.delta0)
+    earth_y = cts.R_orb_A * np.sin(cts.frec_A * sol.t - IC.delta0)
 
-sol = solve_ivp(
-    F,
-    (t0, tf),
-    Y0,
-    method="DOP853",
-    atol=atol,
-    rtol=rtol,
-    events=reach_RB,
-    max_step=dt_event,
-)
+    earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
 
-t_sim_II_end = time.time()
+    after_departure = sol.t > 0.5 * cts.year_to_s
 
-earth_x = cts.R_orb_A * np.cos(cts.frec_A * sol.t - IC.delta0)
-earth_y = cts.R_orb_A * np.sin(cts.frec_A * sol.t - IC.delta0)
+    earth_distance_after_departure = earth_distance[after_departure]
+    time_after_departure = sol.t[after_departure]
 
-earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
+    closest_index = earth_distance_after_departure.argmin()
 
-after_departure = sol.t > 0.5 * cts.year_to_s
+    minimum_earth_distance = earth_distance_after_departure[closest_index]
+    time_of_closest_earth_return = time_after_departure[closest_index]
 
-earth_distance_after_departure = earth_distance[after_departure]
-time_after_departure = sol.t[after_departure]
+    print("\n--- CASE II INITIAL GUESS ---")
+    print("resonance =", str(resonance["n"]) + ":" + str(resonance["n_earth"]))
+    print("theta_II (rad) =", theta_II)
+    print("dv_ign_II (km/s) =", dv_ign_II)
+    print("v_infII (km/s) =", resonance["v_infII"])
+    print("deltaV_ignI analytical (km/s) =", float(analitical.deltaV_ignI))
+    print("dv_ign_II < deltaV_ignI: ", dv_ign_II < float(analitical.deltaV_ignI))
+    print("T_resonance (years) =", resonance["T_resonance"]/cts.year_to_s)
+    print("desired_a (km) =", resonance["desired_a"])
+    print("desired_R_max (km) =", resonance["desired_R_max"])
+    print("tf_case_II (years) =", tf/cts.year_to_s)
 
-closest_index = earth_distance_after_departure.argmin()
+    print("\n--- CASE II checks (without optimize) ---")
+    print("solver success =", sol.success)
+    print("solver message =", sol.message)
 
-minimum_earth_distance = earth_distance_after_departure[closest_index]
-time_of_closest_earth_return = time_after_departure[closest_index]
+    if len(sol.t_events[0]) == 0:
+        rmax = np.hypot(sol.y[0], sol.y[1]).max()
 
-print("\n--- CASE II INITIAL GUESS ---")
-print("theta_II (rad) =", theta_II)
-print("dv_ign_II (km/s) =", dv_ign_II)
-print("v_infII (km/s) =", float(analitical.v_infII))
-print("deltaV_ignI analytical (km/s) =", float(analitical.deltaV_ignI))
-print("dv_ign_II < deltaV_ignI: ", dv_ign_II < float(analitical.deltaV_ignI))
-print("T_resonance (years) =", float(analitical.T_resonance) / (365.25 * 24 * 3600))
-print("desired_a (km) =", float(analitical.desired_a))
-print("desired_R_max (km) =", float(analitical.desired_R_max))
-print("tf_case_II (years) =", tf / (365.25 * 24 * 3600))
+        print("\nDid NOT reach R_B with non-optimized Case II parameters.")
+        print("r_max =", int(rmax//1000000), "Gm")
+        print("R_B =", int(float(cts.R_orb_B)//1000000), "Gm")
+        print("missing =", int((float(cts.R_orb_B) - rmax)//1000000), "Gm")
 
-print("\n--- CASE II checks (without optimize) ---")
-print("solver success =", sol.success)
-print("solver message =", sol.message)
-print("sim runtime (s) =", t_sim_II_end - t_sim_II_start)
-print("total runtime (s) =", t_sim_II_end - t_case_II_start)
+    else:
+        t_hit = float(sol.t_events[0][0])
+        y_hit = sol.y_events[0][0]
+        r_hit = float(np.hypot(y_hit[0], y_hit[1]))
 
-if len(sol.t_events[0]) == 0:
-    rmax = np.hypot(sol.y[0], sol.y[1]).max()
-
-    print("\nDid NOT reach R_B with non-optimized Case II parameters.")
-    print("r_max =", int(rmax//1000000), "Gm")
-    print("R_B =", int(float(cts.R_orb_B)//1000000), "Gm")
-    print("missing =", int((float(cts.R_orb_B) - rmax)//1000000), "Gm")
+        print("\n--- HIT (without optimize) ---")
+        print("t_hit (years) =", t_hit/cts.year_to_s)
+        print("r_hit (km) =", r_hit)
+        print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
 
     print("\n--- EARTH RETURN CHECK ---")
     print("minimum Earth distance after departure (km) =", minimum_earth_distance)
-    print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+    print("time of closest Earth return (years) =", time_of_closest_earth_return/cts.year_to_s)
     print("Earth SOI radius (km) =", cts.earth_SOI_radius)
     print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
+    print("above Earth surface ? =", minimum_earth_distance > cts.R_Earth)
 
-    if input("Do you want to attempt to find a valid solution by doing a closeup sweep ? (Y/n) : \n") in ["Y", "y"]:
 
-        print("\n--- CASE II SWEEP GUESS ---") 
-        nbe = 8
-        n_grid_deltav = 20
-        n_grid_theta = 10
-        print(f"dv_ign_II = {dv_ign_II} [km/s]")
-        print(f"dv_span =  +-{dv_ign_II*(1/2**nbe)}")
-        print(f"# of deltaV values = {n_grid_deltav}")
-        print(f"theta_II = {theta_II} [rad]")
-        print(f"theta_II_span = +-{0.5} [rad]")
-        print(f"# of theta values = {n_grid_theta}")
-        print(f"Testing {n_grid_theta*n_grid_deltav} configurations ; estimated time = {n_grid_theta*n_grid_deltav*0.085*1} [s]")
+print("\nInitializing case II simulation")
 
-        tf = float(analitical.T_transfer_case_II)
+t_start = time.time()
 
-        t_simII_start = time.time()
+# Se enseña el caso 1:12 porque es el relevante para Tierra-Saturno,
+# pero la optimización real barre 2..12.
+resonance_12 = analitical.resonance_case_II_estimate(n=1, n_earth=12)
 
-        best_caseII = optimizer.optimize_case_II(
-            F=F,
-            nstep=nstep_opt,
-            atol=atol,
-            rtol=rtol,
-            tf=tf,
-            t0=t0,
-            n_grid_deltav=n_grid_deltav,
-            n_grid_theta=n_grid_theta,
-            n_refines=1,
-            narrowband_exponent=nbe
-        )
+check_initial_guess(resonance_12)
 
-        t_simII_end = time.time()
-        print("Case two sweep time =", t_simII_end-t_simII_start)
+print("\n--- CASE II RESONANCE SWEEP ---")
 
-        if best_caseII != None:
-            print("Found best ii")
-            print(best_caseII)
-        else:
-            print("No valid solutions found")
-            print("\n--- Trying to maximize radius after gravity assist ---")
-            print(f"estimated time = {n_grid_theta*n_grid_deltav*0.085*6} [s]")
+t_sweep_start = time.time()
+
+best_caseII, sweep_results = optimizer.optimize_case_II_resonance_sweep(
+    F=F,
+    nstep=nstep_opt,
+    atol=atol,
+    rtol=rtol,
+    t0=t0,
+    n=1,
+    n_earth_values=[12],
+    n_grid_deltav=7,
+    n_grid_theta=7,
+    n_refines=0,
+    min_flyby_altitude_km=300.0,
+    max_flyby_altitude_km=350000.0
+)
+
+t_sweep_end = time.time()
+
+print("\nCase II sweep time =", t_sweep_end - t_sweep_start)
+
+if False: ## Legacy
+    earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
+
+    after_departure = sol.t > 0.5 * cts.year_to_s
+
+    earth_distance_after_departure = earth_distance[after_departure]
+    time_after_departure = sol.t[after_departure]
+
+    closest_index = earth_distance_after_departure.argmin()
+
+    minimum_earth_distance = earth_distance_after_departure[closest_index]
+    time_of_closest_earth_return = time_after_departure[closest_index]
+
+    print("\n--- CASE II INITIAL GUESS ---")
+    print("theta_II (rad) =", theta_II)
+    print("dv_ign_II (km/s) =", dv_ign_II)
+    print("v_infII (km/s) =", float(analitical.v_infII))
+    print("deltaV_ignI analytical (km/s) =", float(analitical.deltaV_ignI))
+    print("dv_ign_II < deltaV_ignI: ", dv_ign_II < float(analitical.deltaV_ignI))
+    print("T_resonance (years) =", float(analitical.T_resonance) / (365.25 * 24 * 3600))
+    print("desired_a (km) =", float(analitical.desired_a))
+    print("desired_R_max (km) =", float(analitical.desired_R_max))
+    print("tf_case_II (years) =", tf / (365.25 * 24 * 3600))
+
+    print("\n--- CASE II checks (without optimize) ---")
+    print("solver success =", sol.success)
+    print("solver message =", sol.message)
+    print("sim runtime (s) =", t_sim_II_end - t_sim_II_start)
+    print("total runtime (s) =", t_sim_II_end - t_case_II_start)
+
+    if len(sol.t_events[0]) == 0:
+        rmax = np.hypot(sol.y[0], sol.y[1]).max()
+
+        print("\nDid NOT reach R_B with non-optimized Case II parameters.")
+        print("r_max =", int(rmax//1000000), "Gm")
+        print("R_B =", int(float(cts.R_orb_B)//1000000), "Gm")
+        print("missing =", int((float(cts.R_orb_B) - rmax)//1000000), "Gm")
+
+        print("\n--- EARTH RETURN CHECK ---")
+        print("minimum Earth distance after departure (km) =", minimum_earth_distance)
+        print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+        print("Earth SOI radius (km) =", cts.earth_SOI_radius)
+        print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
+
+        if input("Do you want to attempt to find a valid solution by doing a closeup sweep ? (Y/n) : \n") in ["Y", "y"]:
+
+            print("\n--- CASE II SWEEP GUESS ---") 
+            nbe = 8
+            n_grid_deltav = 20
+            n_grid_theta = 10
+            print(f"dv_ign_II = {dv_ign_II} [km/s]")
+            print(f"dv_span =  +-{dv_ign_II*(1/2**nbe)}")
+            print(f"# of deltaV values = {n_grid_deltav}")
+            print(f"theta_II = {theta_II} [rad]")
+            print(f"theta_II_span = +-{0.5} [rad]")
+            print(f"# of theta values = {n_grid_theta}")
+            print(f"Testing {n_grid_theta*n_grid_deltav} configurations ; estimated time = {n_grid_theta*n_grid_deltav*0.085*1} [s]")
+
+            tf = float(analitical.T_transfer_case_II)
+
+            t_simII_start = time.time()
 
             best_caseII = optimizer.optimize_case_II(
                 F=F,
@@ -194,42 +242,80 @@ if len(sol.t_events[0]) == 0:
                 t0=t0,
                 n_grid_deltav=n_grid_deltav,
                 n_grid_theta=n_grid_theta,
-                n_refines=6,
-                narrowband_exponent=nbe,
-                mode="deltaV*" #MED
+                n_refines=1,
+                narrowband_exponent=nbe
             )
-            reached_R_B = best_caseII["reached_R_B"]
-            if reached_R_B == True:
-                print("Valid solution:")
-                print(best_caseII) # cambiar formato para facer mais bonito
-            if reached_R_B == False:
-                print("No valid solutions found")
+
+            t_simII_end = time.time()
+            print("Case two sweep time =", t_simII_end-t_simII_start)
+
+            if best_caseII != None:
+                print("Found best ii")
                 print(best_caseII)
+            else:
+                print("No valid solutions found")
+                print("\n--- Trying to maximize radius after gravity assist ---")
+                print(f"estimated time = {n_grid_theta*n_grid_deltav*0.085*6} [s]")
 
-            print("\n--- EARTH RETURN CHECK ---")
-            print("minimum Earth distance after departure (km) =", best_caseII["MED"])
-            print("time of closest Earth return (years) =", best_caseII["t_MED"] / cts.year_to_s)
-            print("Earth SOI radius (km) =", cts.earth_SOI_radius)
-            print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
+                best_caseII = optimizer.optimize_case_II(
+                    F=F,
+                    nstep=nstep_opt,
+                    atol=atol,
+                    rtol=rtol,
+                    tf=tf,
+                    t0=t0,
+                    n_grid_deltav=n_grid_deltav,
+                    n_grid_theta=n_grid_theta,
+                    n_refines=6,
+                    narrowband_exponent=nbe,
+                    mode="deltaV*" #MED
+                )
+                reached_R_B = best_caseII["reached_R_B"]
+                if reached_R_B == True:
+                    print("Valid solution:")
+                    print(best_caseII) # cambiar formato para facer mais bonito
+                if reached_R_B == False:
+                    print("No valid solutions found")
+                    print(best_caseII)
+
+                print("\n--- EARTH RETURN CHECK ---")
+                print("minimum Earth distance after departure (km) =", best_caseII["MED"])
+                print("time of closest Earth return (years) =", best_caseII["t_MED"] / cts.year_to_s)
+                print("Earth SOI radius (km) =", cts.earth_SOI_radius)
+                print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
 
 
-    else:
-        print("...")
+        else:
+            print("...")
+
+            
+if best_caseII is None:
+    print("\nNo valid Case II solution found.")
 
 else:
-    t_hit = float(sol.t_events[0][0])
-    y_hit = sol.y_events[0][0]
-    r_hit = float(np.hypot(y_hit[0], y_hit[1]))
+    print("\n--- OPTIMUM (Case II) ---")
+    print("resonance =", str(best_caseII["resonance_n"]) + ":" + str(best_caseII["resonance_n_earth"]))
+    print("theta_opt_II (rad) =", float(best_caseII["theta"]))
+    print("dv_ign_opt_II (km/s) =", float(best_caseII["dv_ign"]))
+    print("dv_fin_opt_II (km/s) =", float(best_caseII["dv_fin"]))
+    print("dv_tot_opt_II (km/s) =", float(best_caseII["dv_tot"]))
+    print("t_fin_opt_II (years) =", float(best_caseII["t_fin"]) / cts.year_to_s)
 
-    print("\n--- HIT (without optimize) ---")
-    print("t_hit (years) =", t_hit / (365.25 * 24 * 3600))
-    print("r_hit (km) =", r_hit)
-    print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
-
-    print("\n--- EARTH RETURN CHECK ---")
-    print("minimum Earth distance after departure (km) =", minimum_earth_distance)
-    print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+    print("\n--- EARTH FLYBY CHECK ---")
+    print("t_SOI_in (years) =", float(best_caseII["t_SOI_in"]) / cts.year_to_s)
+    print("t_SOI_out (years) =", float(best_caseII["t_SOI_out"]) / cts.year_to_s)
+    print("minimum Earth distance after departure (km) =", float(best_caseII["MED"]))
+    print("minimum altitude over Earth (km) =", float(best_caseII["minimum_altitude"]))
+    print("time of closest Earth return (years) =", float(best_caseII["t_MED"]) / cts.year_to_s)
     print("Earth SOI radius (km) =", cts.earth_SOI_radius)
-    print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
+    print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
+    print("above Earth surface ? =", best_caseII["MED"] > cts.R_Earth)
+    print("dv_ign_II < deltaV_ignI ? =", best_caseII["dv_ign"] < float(analitical.deltaV_ignI))
 
+    print("\n--- FLYBY ENERGY CHECK ---")
+    print("heliocentric energy before (km^2/s^2) =", best_caseII["energy_before"])
+    print("heliocentric energy after (km^2/s^2) =", best_caseII["energy_after"])
+    print("energy gain (km^2/s^2) =", best_caseII["energy_gain"])
+    print("post-flyby aphelion (Gm) =", best_caseII["r_apo_after"]/1000000)
 
+print("\nTotal runtime =", time.time() - t_start)
