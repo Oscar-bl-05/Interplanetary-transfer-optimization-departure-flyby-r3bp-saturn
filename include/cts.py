@@ -1,6 +1,7 @@
 from math import pi
 
 deg2rad = pi/180
+year2seconds = int(365.25 * 24 * 3600)
 
 # Parámetros gravitacionales (km^3/s^2)
 mu_sun = int(1.32712440018e11)
@@ -19,4 +20,3 @@ T_orb_B = int(9.29e8)         # s
 frec_B = 2*pi/T_orb_B
 
 earth_SOI_radius = R_orb_A * (mu_earth / mu_sun)**(2.0 / 5.0) # Radio esfera de influencia terrestre
-year_to_s = 365 * 24 * 3600

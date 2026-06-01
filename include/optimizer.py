@@ -28,9 +28,7 @@ def optimize_case_I(
         dv_span = 0.3 * dv_center
 
     def reach_RB(t, Y):
-        # detecta la llegada a punto lagrange de planeta B
         return np.hypot(Y[0], Y[1]) - cts.R_orb_B
-
     reach_RB.terminal = True
     reach_RB.direction = 1
 
@@ -281,7 +279,7 @@ def case_II_screen_flyby(
     exit_SOI = make_exit_SOI_event()
 
     t_return = float(resonance["n_earth"] * cts.T_orb_A)
-    window = float(return_window_years * cts.year_to_s)
+    window = float(return_window_years * cts.year2seconds)
 
     tf_screen = t_return + window
 
@@ -651,7 +649,7 @@ def optimize_case_II_resonance_sweep(
             "| theta_guess =",
             resonance["theta_0II"],
             "| tf years =",
-            resonance["T_transfer_case_II"]/cts.year_to_s
+            resonance["T_transfer_case_II"]/cts.year2seconds
         )
 
         if resonance["deltaV_ignII"] >= float(analitical.deltaV_ignI):

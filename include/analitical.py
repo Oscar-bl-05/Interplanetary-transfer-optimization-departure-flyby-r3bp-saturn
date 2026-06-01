@@ -116,6 +116,3 @@ v_infII = _default_caseII["v_infII"]
 deltaV_ignII = _default_caseII["deltaV_ignII"]
 theta_0II = _default_caseII["theta_0II"]
 T_transfer_case_II = _default_caseII["T_transfer_case_II"]
-
-# Alias viejo por compatibilidad.
-completely_not_pulled_out_of_my_ass_value = deltaV_ignII

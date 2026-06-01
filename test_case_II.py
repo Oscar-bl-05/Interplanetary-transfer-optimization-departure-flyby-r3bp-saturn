@@ -86,7 +86,7 @@ def check_initial_guess(resonance):
 
     earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
 
-    after_departure = sol.t > 0.5 * cts.year_to_s
+    after_departure = sol.t > 0.5 * cts.year2seconds
 
     earth_distance_after_departure = earth_distance[after_departure]
     time_after_departure = sol.t[after_departure]
@@ -103,10 +103,10 @@ def check_initial_guess(resonance):
     print("v_infII (km/s) =", resonance["v_infII"])
     print("deltaV_ignI analytical (km/s) =", float(analitical.deltaV_ignI))
     print("dv_ign_II < deltaV_ignI: ", dv_ign_II < float(analitical.deltaV_ignI))
-    print("T_resonance (years) =", resonance["T_resonance"]/cts.year_to_s)
+    print("T_resonance (years) =", resonance["T_resonance"]/cts.year2seconds)
     print("desired_a (km) =", resonance["desired_a"])
     print("desired_R_max (km) =", resonance["desired_R_max"])
-    print("tf_case_II (years) =", tf/cts.year_to_s)
+    print("tf_case_II (years) =", tf/cts.year2seconds)
 
     print("\n--- CASE II checks (without optimize) ---")
     print("solver success =", sol.success)
@@ -126,13 +126,13 @@ def check_initial_guess(resonance):
         r_hit = float(np.hypot(y_hit[0], y_hit[1]))
 
         print("\n--- HIT (without optimize) ---")
-        print("t_hit (years) =", t_hit/cts.year_to_s)
+        print("t_hit (years) =", t_hit/cts.year2seconds)
         print("r_hit (km) =", r_hit)
         print("r_hit - R_B (km) =", r_hit - float(cts.R_orb_B))
 
     print("\n--- EARTH RETURN CHECK ---")
     print("minimum Earth distance after departure (km) =", minimum_earth_distance)
-    print("time of closest Earth return (years) =", time_of_closest_earth_return/cts.year_to_s)
+    print("time of closest Earth return (years) =", time_of_closest_earth_return/cts.year2seconds)
     print("Earth SOI radius (km) =", cts.earth_SOI_radius)
     print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
     print("above Earth surface ? =", minimum_earth_distance > cts.R_Earth)
@@ -174,7 +174,7 @@ print("\nCase II sweep time =", t_sweep_end - t_sweep_start)
 if False: ## Legacy
     earth_distance = np.hypot(sol.y[0] - earth_x, sol.y[1] - earth_y)
 
-    after_departure = sol.t > 0.5 * cts.year_to_s
+    after_departure = sol.t > 0.5 * cts.year2seconds
 
     earth_distance_after_departure = earth_distance[after_departure]
     time_after_departure = sol.t[after_departure]
@@ -211,7 +211,7 @@ if False: ## Legacy
 
         print("\n--- EARTH RETURN CHECK ---")
         print("minimum Earth distance after departure (km) =", minimum_earth_distance)
-        print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year_to_s)
+        print("time of closest Earth return (years) =", time_of_closest_earth_return / cts.year2seconds)
         print("Earth SOI radius (km) =", cts.earth_SOI_radius)
         print("inside Earth SOI ? =", minimum_earth_distance < cts.earth_SOI_radius)
 
@@ -280,7 +280,7 @@ if False: ## Legacy
 
                 print("\n--- EARTH RETURN CHECK ---")
                 print("minimum Earth distance after departure (km) =", best_caseII["MED"])
-                print("time of closest Earth return (years) =", best_caseII["t_MED"] / cts.year_to_s)
+                print("time of closest Earth return (years) =", best_caseII["t_MED"] / cts.year2seconds)
                 print("Earth SOI radius (km) =", cts.earth_SOI_radius)
                 print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
 
@@ -288,7 +288,7 @@ if False: ## Legacy
         else:
             print("...")
 
-            
+
 if best_caseII is None:
     print("\nNo valid Case II solution found.")
 
@@ -299,14 +299,14 @@ else:
     print("dv_ign_opt_II (km/s) =", float(best_caseII["dv_ign"]))
     print("dv_fin_opt_II (km/s) =", float(best_caseII["dv_fin"]))
     print("dv_tot_opt_II (km/s) =", float(best_caseII["dv_tot"]))
-    print("t_fin_opt_II (years) =", float(best_caseII["t_fin"]) / cts.year_to_s)
+    print("t_fin_opt_II (years) =", float(best_caseII["t_fin"]) / cts.year2seconds)
 
     print("\n--- EARTH FLYBY CHECK ---")
-    print("t_SOI_in (years) =", float(best_caseII["t_SOI_in"]) / cts.year_to_s)
-    print("t_SOI_out (years) =", float(best_caseII["t_SOI_out"]) / cts.year_to_s)
+    print("t_SOI_in (years) =", float(best_caseII["t_SOI_in"]) / cts.year2seconds)
+    print("t_SOI_out (years) =", float(best_caseII["t_SOI_out"]) / cts.year2seconds)
     print("minimum Earth distance after departure (km) =", float(best_caseII["MED"]))
     print("minimum altitude over Earth (km) =", float(best_caseII["minimum_altitude"]))
-    print("time of closest Earth return (years) =", float(best_caseII["t_MED"]) / cts.year_to_s)
+    print("time of closest Earth return (years) =", float(best_caseII["t_MED"]) / cts.year2seconds)
     print("Earth SOI radius (km) =", cts.earth_SOI_radius)
     print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
     print("above Earth surface ? =", best_caseII["MED"] > cts.R_Earth)
