@@ -286,8 +286,11 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
                 if out is None:
                     continue
                 if out["dv_tot"] < best_cost:
-                    best_cost = out["dv_tot"]
-                    best = out
+                    if out["t_fin"] > 3/4*analitical.T_resonance:
+                        best_cost = out["dv_tot"]
+                        best = out
+                    else:
+                        print(f"One solution with t_fin = {out['t_fin']} s was found but discarded")
 
         return best
     
@@ -310,7 +313,6 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
                     continue
 
                 if out["reached_R_B"] and (reached_R_B == False):
-                    print("OCURRIO")
                     reached_R_B = True
                     best_MED = out["dv_tot"]
                     best = out
@@ -352,7 +354,6 @@ def optimize_case_II(F, nstep, atol, rtol, tf, t0=0.0, n_grid_deltav=10, n_grid_
 
                 if out["reached_R_B"]:
                     if reached_R_B == False:
-                        print("OCURRIO")
                         reached_R_B = True
                         best_cost = out["dv_tot"]
                         best = out

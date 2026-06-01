@@ -146,7 +146,7 @@ if len(sol.t_events[0]) == 0:
     if input("Do you want to attempt to find a valid solution by doing a closeup sweep ? (Y/n) : \n") in ["Y", "y"]:
 
         print("\n--- CASE II SWEEP GUESS ---") 
-        nbe = 6
+        nbe = 8
         n_grid_deltav = 20
         n_grid_theta = 10
         print(f"dv_ign_II = {dv_ign_II} [km/s]")
