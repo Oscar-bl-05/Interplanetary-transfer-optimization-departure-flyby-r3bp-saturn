@@ -73,7 +73,7 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
     print("\nStarting case I optimization...")
     print(f"Estimated time = {opt1_n_grid**2*opt1_n_refines*0.085} s")
     t0 = 0.0
-    tf = float(analitical.T_transfer_case_I) 
+    tf1 = float(analitical.T_transfer_case_I) 
 
     t_opt1_start = time.time()
 
@@ -82,7 +82,7 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
         nstep=nstep_opt,
         atol=atol,
         rtol=rtol,
-        tf=tf,
+        tf=tf1,
         t0=t0,
         n_grid=opt1_n_grid,
         n_refines=opt1_n_refines,
@@ -121,13 +121,13 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
     Y0 = baseY0.copy()
     Y0[2:4] += V_ign
 
-    dt_event = (tf - t0) / nstep_opt
+    dt_event = (tf1 - t0) / nstep_opt
 
     t_sim_start = time.time()
 
     sol = solve_ivp(
         F,
-        (t0, tf),
+        (t0, tf1),
         Y0,
         method="DOP853",
         atol=atol,
@@ -191,7 +191,7 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
 
 
 def check_initial_guess(resonance):
-    tf = resonance["T_transfer_case_II"]
+    tf2 = resonance["T_transfer_case_II"]
 
     theta_II = resonance["theta_0II"]
     dv_ign_II = resonance["deltaV_ignII"]
@@ -207,11 +207,11 @@ def check_initial_guess(resonance):
     Y0 = baseY0.copy()
     Y0[2:4] += V_ign
 
-    dt_event = (tf - t0) / nstep_opt
+    dt_event = (tf2 - t0) / nstep_opt
 
     sol = solve_ivp(
         F,
-        (t0, tf),
+        (t0, tf2),
         Y0,
         method="DOP853",
         atol=atol,
@@ -245,7 +245,7 @@ def check_initial_guess(resonance):
     print("T_resonance (years) =", resonance["T_resonance"]/cts.year2seconds)
     print("desired_a (km) =", resonance["desired_a"])
     print("desired_R_max (km) =", resonance["desired_R_max"])
-    print("tf_case_II (years) =", tf/cts.year2seconds)
+    print("tf_case_II (years) =", tf2/cts.year2seconds)
 
     print("\n--- CASE II checks (without optimize) ---")
     print("solver success =", sol.success)
@@ -282,7 +282,7 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
 
     print("\nInitializing case II simulation...")
     t0 = 0.0
-    tf = float(analitical.T_transfer_case_II)
+    tf2 = float(analitical.T_transfer_case_II)
 
     # The case 1:12 is shown simply as a relevant sample to showcase the code
     resonance_12 = analitical.resonance_case_II_estimate(n=1, n_earth=12)
@@ -357,8 +357,60 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         print("energy_gain (km^2/s^2) =", energy_gain_opt2)
         print("r_apo_after (km) =", r_apo_after_opt2)
 
-        # Case I vs Case II
+        # Build optimal initial condition for case II
+        baseY0_2, t_hat_theta2 = IC.ICtoY0(
+            IC.rho0,
+            theta0=theta_opt2,
+            delta0=IC.delta0,
+        )
 
+        V_ign2 = dv_ign_opt2 * t_hat_theta2
+
+        Y0_2 = baseY0_2.copy()
+        Y0_2[2:4] += V_ign2
+
+        # Use the validated Case II solution returned by the optimizer.
+        # This is the post-flyby arc: t_SOI_out -> R_B.
+        sol2 = best_caseII["sol"]
+
+        t_hit2 = t_fin_opt2
+        y_hit2 = best_caseII["y_fin"]
+        r_hit2 = float(np.hypot(y_hit2[0], y_hit2[1]))
+
+        print("\n--- HIT (Case II optimum) ---")
+        print("t_hit2 (years) =", t_hit2 / cts.year2seconds)
+        print("r_hit2 (km) =", r_hit2)
+        print("r_hit2 - R_B (km) =", r_hit2 - float(cts.R_orb_B))
+
+        # Plots of the validated optimal case II post-flyby trajectory
+        t_plot2 = np.linspace(t_SOI_out_opt2, t_hit2, nstep_plot + 1, endpoint=True)
+        dt_plot2 = (t_hit2 - t_SOI_out_opt2) / nstep_plot
+
+        sol_plot2 = solve_ivp(
+            F,
+            (t_SOI_out_opt2, t_hit2),
+            best_caseII["Y_SOI_out"],
+            t_eval=t_plot2,
+            method="DOP853",
+            atol=atol,
+            rtol=rtol,
+        )
+
+        sol_plot2_ref = solve_ivp(
+            F,
+            (t_SOI_out_opt2, t_hit2),
+            best_caseII["Y_SOI_out"],
+            t_eval=t_plot2,
+            method="DOP853",
+            atol=atol_ref,
+            rtol=rtol_ref,
+        )
+
+        print("\nPlotting optimum post-flyby trajectory and errors for case II...")
+        plotter.plot_solution(sol_plot2.t, sol_plot2.y, sol_plot2_ref.y)
+        plotter.plot2D(sol_plot2.t, dt_plot2, sol_plot2.y, R)
+
+        # Case I vs Case II
         dv_saving = dv_tot_opt1 - dv_tot_opt2
         relative_saving = 100.0 * dv_saving / dv_tot_opt1
         extra_time = t_fin_opt2 - t_fin_opt1
