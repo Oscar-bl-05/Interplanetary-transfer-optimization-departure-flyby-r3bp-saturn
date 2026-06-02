@@ -180,13 +180,7 @@ print("t_fin_test2 (years) =", t_fin_test2 / cts.year2seconds)
 
 
 def caseII_pre_flyby_state(atol, rtol):
-    """
-    Arc 1:
-        t0 -> t_SOI_out
-
-    This checks the pre-flyby propagation up to the same SOI exit time
-    used by the validated Case II solution.
-    """
+    # t0 -> t_SOI_out
 
     if t_SOI_out_test2 <= t0_2:
         raise ValueError(
@@ -243,10 +237,10 @@ def caseII_post_flyby_hit_state(atol, rtol):
 
 
 print("\nCase II time interval checks:")
-print("tf2 analytical upper bound (years) =", tf2 / cts.year2seconds)
+print("analytical Case II time estimate (years) =", tf2 / cts.year2seconds)
 print("t_SOI_out_test2 (years) =", t_SOI_out_test2 / cts.year2seconds)
 print("t_fin_test2 (years) =", t_fin_test2 / cts.year2seconds)
-print("post-flyby validation upper bound (years) =", (t_fin_test2 + 0.50 * cts.year2seconds) / cts.year2seconds)
+print("post-flyby validation (years) =", (t_fin_test2 + 0.50 * cts.year2seconds) / cts.year2seconds)
 
 pre_ref = caseII_pre_flyby_state(atol_ref, rtol_ref)
 post_ref = caseII_post_flyby_hit_state(atol_ref, rtol_ref)
