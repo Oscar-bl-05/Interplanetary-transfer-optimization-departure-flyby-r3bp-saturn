@@ -3,8 +3,7 @@ import time
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from include import cts, analitical, IC
-from include import plotter
+from include import cts, analitical, IC, plotter
 from include.optimizer import optimize_case_I, optimize_case_II_resonance_sweep
 
 
@@ -182,12 +181,13 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
         rtol=rtol_ref,
     )
 
-    print("\nPlotting optimum trajectory and errors for case I...\n-------------------X-------------------")
+    print("\nGenerating plots for case I...\n-------------------X-------------------")
 
     plotter.plot_solution(sol_plot.t, sol_plot.y, sol_plot_ref.y)
     plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
     plotter.plot_distances(sol_plot.t, sol_plot.y, R, title="Case I optimum",)
-
+    plotter.plot_orbital_elements(sol_plot.t, sol_plot.y, R, center="sun", title="Case I optimum - heliocentric elements")
+    plotter.plot_orbital_elements(sol_plot.t, sol_plot.y, R, center="earth", title="Case I optimum - Earth-relative departure elements", time_window=(t0, 0.20 * cts.year2seconds))
 
 #### #### CASE II #### ####
 
@@ -380,7 +380,7 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         print("r_hit2 (km) =", r_hit2)
         print("r_hit2 - R_B (km) =", r_hit2 - float(cts.R_orb_B))
 
-        print("\nPlotting complete optimum trajectory and errors for case II...")
+        print("\nGenerating plots for case II...")
 
         # Full time vector for the complete plotted trajectory.
         t_plot2 = np.linspace(t0, t_hit2, nstep_plot + 1, endpoint=True)
@@ -446,6 +446,9 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         plotter.plot2D(t_plot2, dt_plot2, Y_plot2, R)
         plotter.plot2D_caseII(t_plot2, Y_plot2, R, t_SOI_in_opt2, t_SOI_out_opt2, t_MED_opt2)
         plotter.plot_distances(t_plot2, Y_plot2, R, title="Case II optimum", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
+        plotter.plot_orbital_elements(t_plot2, Y_plot2, R, center="sun", title="Case II optimum - heliocentric elements", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
+        plotter.plot_orbital_elements(t_plot2, Y_plot2, R, center="earth", title="Case II optimum - Earth-relative flyby elements", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2, time_window=(t_SOI_in_opt2 - 0.15 * cts.year2seconds, t_SOI_out_opt2 + 0.15 * cts.year2seconds))
+
         # Case I vs Case II
         dv_saving = dv_tot_opt1 - dv_tot_opt2
         relative_saving = 100.0 * dv_saving / dv_tot_opt1

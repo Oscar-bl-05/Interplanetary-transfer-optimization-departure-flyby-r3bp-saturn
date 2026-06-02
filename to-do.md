@@ -80,21 +80,21 @@
 2. check
 3. check
 4. check
-5. check; no tenemos un caso II funcional
+5. check
 6. check
-7. check; revisar al acabar
+7. check (revisar caso II)
 8. check
-9. check (revisar)
-10. check (revisar)
-11. check (según entendo o guion si, revisar)
-12. check (ídem 11)
+9. check
+10. check
+11. check
+12. check
 13. check (n_refines = 2)
-14. más de lo mismo para el caso II
-15. ya tenemos el plotter, solo falta la solución
-16. revisar al acabar
-17. falta implementarlo
-18. falta implementarlo
-19. hecho
+14. check (n_refines = 0 para debuggear, cambiar)
+15. check
+16. revisar caso II
+17. falta centrada en la Tierra
+18. check
+19. check
 20. pendiente
 21. pendiente
 22. pendiente

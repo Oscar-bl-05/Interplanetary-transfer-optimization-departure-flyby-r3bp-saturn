@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from . import cts
+from . import cts, orbital_elements
 
 def plot2D(t, dt, Y, R_f): # Plot 2D animation
 
@@ -192,6 +192,117 @@ def plot_distances(t, Y, R_f, title="", t_SOI_in=None, t_SOI_out=None, t_MED=Non
     ax.set_xlabel("time [years]")
     ax.set_ylabel("|r(t) - R_Earth(t)| [km]")
     ax.grid(True, which="both")
+    ax.legend()
+
+    plt.show()
+
+def plot_orbital_elements(t, Y, R_f, center="sun", title="", t_SOI_in=None, t_SOI_out=None, t_MED=None, time_window = None):
+    # time_window:
+    # Optional tuple (t_min, t_max) in seconds.
+    # to zoom Earth-relative elements near departure or flyby.
+
+    t = np.asarray(t)
+    Y = np.asarray(Y)
+
+    if time_window is not None:
+        t_min, t_max = time_window
+        mask = (t >= t_min) & (t <= t_max)
+
+        if np.count_nonzero(mask) < 2:
+            print("Not enough points inside selected time_window for orbital elements plot.")
+            return
+
+        t_plot = t[mask]
+        Y_plot = Y[:, mask]
+    else:
+        t_plot = t
+        Y_plot = Y
+
+    elements = orbital_elements.compute_planar_orbital_elements(
+        t=t_plot,
+        Y=Y_plot,
+        R_f=R_f,
+        center=center,
+    )
+
+    t_years = t_plot / cts.year2seconds
+
+    e = elements["e"]
+    p = elements["p"]
+    omega_deg = np.degrees(elements["omega"])
+
+    fig, axes = plt.subplots(
+        nrows=3,
+        ncols=1,
+        figsize=(10, 9),
+        constrained_layout=True,
+    )
+
+    if title == "":
+        title = "Orbital elements wrt " + center
+
+    def add_event_lines(ax):
+        if t_SOI_in is not None and t_plot[0] <= t_SOI_in <= t_plot[-1]:
+            ax.axvline(
+                t_SOI_in / cts.year2seconds,
+                linestyle=":",
+                linewidth=1.0,
+                label="SOI entry",
+            )
+
+        if t_SOI_out is not None and t_plot[0] <= t_SOI_out <= t_plot[-1]:
+            ax.axvline(
+                t_SOI_out / cts.year2seconds,
+                linestyle=":",
+                linewidth=1.0,
+                label="SOI exit",
+            )
+
+        if t_MED is not None and t_plot[0] <= t_MED <= t_plot[-1]:
+            ax.axvline(
+                t_MED / cts.year2seconds,
+                linestyle="-.",
+                linewidth=1.0,
+                label="Closest Earth approach",
+            )
+
+    # ============================================================
+    # Eccentricity
+    # ============================================================
+    ax = axes[0]
+    ax.plot(t_years, e, linewidth=1.2, label="e(t)")
+    add_event_lines(ax)
+
+    ax.set_title(title + " - eccentricity")
+    ax.set_xlabel("time [years]")
+    ax.set_ylabel("e [-]")
+    ax.grid(True)
+    ax.legend()
+
+    # ============================================================
+    # Semi-latus rectum
+    # ============================================================
+    ax = axes[1]
+    ax.plot(t_years, p, linewidth=1.2, label="p(t)")
+    add_event_lines(ax)
+
+    ax.set_title(title + " - semi-latus rectum")
+    ax.set_xlabel("time [years]")
+    ax.set_ylabel("p [km]")
+    ax.grid(True)
+    ax.legend()
+
+    # ============================================================
+    # Argument of periapsis
+    # ============================================================
+    ax = axes[2]
+    ax.plot(t_years, omega_deg, linewidth=1.2, label=r"$\omega(t)$")
+    add_event_lines(ax)
+
+    ax.set_title(title + " - argument of periapsis")
+    ax.set_xlabel("time [years]")
+    ax.set_ylabel(r"$\omega$ [deg]")
+    ax.grid(True)
     ax.legend()
 
     plt.show()
