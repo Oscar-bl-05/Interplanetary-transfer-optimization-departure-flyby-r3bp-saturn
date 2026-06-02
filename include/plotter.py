@@ -78,3 +78,51 @@ def plot_solution(t, Y, Y_ref): # Plot variables and errors
     fig.suptitle('Numerical error with respect to reference solution', fontsize=14)
 
     plt.show()
+
+def plot2D_caseII(t, Y, R_f, t_SOI_in=None, t_SOI_out=None, t_MED=None):
+    """
+    Plot the complete optimized Case II trajectory
+    in a single heliocentric figure.
+    """
+
+    x = Y[0, :]
+    y = Y[1, :]
+
+    alpha = np.linspace(0.0, 2.0 * np.pi, 800)
+
+    earth_orbit_x = cts.R_orb_A * np.cos(alpha)
+    earth_orbit_y = cts.R_orb_A * np.sin(alpha)
+
+    saturn_orbit_x = cts.R_orb_B * np.cos(alpha)
+    saturn_orbit_y = cts.R_orb_B * np.sin(alpha)
+
+    fig, ax = plt.subplots(figsize=(8, 8), constrained_layout=True)
+
+    ax.plot(earth_orbit_x, earth_orbit_y, "--", linewidth=1.0, label="Earth orbit")
+    ax.plot(saturn_orbit_x, saturn_orbit_y, "--", linewidth=1.0, label="Saturn orbit")
+    ax.plot(x, y, "-", linewidth=1.2, label="Spacecraft trajectory")
+
+    ax.plot(0.0, 0.0, "o", markersize=7, label="Sun")
+    ax.plot(x[0], y[0], "o", markersize=5, label="Departure")
+    ax.plot(x[-1], y[-1], "o", markersize=5, label="Arrival at R_B")
+
+    if t_SOI_in is not None:
+        i_in = int(np.argmin(np.abs(t - t_SOI_in)))
+        ax.plot(x[i_in], y[i_in], "s", markersize=5, label="SOI entry")
+
+    if t_SOI_out is not None:
+        i_out = int(np.argmin(np.abs(t - t_SOI_out)))
+        ax.plot(x[i_out], y[i_out], "s", markersize=5, label="SOI exit")
+
+    if t_MED is not None:
+        i_med = int(np.argmin(np.abs(t - t_MED)))
+        ax.plot(x[i_med], y[i_med], "x", markersize=7, label="Closest Earth approach")
+
+    ax.set_title("Case II complete heliocentric trajectory")
+    ax.set_xlabel("x [km]")
+    ax.set_ylabel("y [km]")
+    ax.set_aspect("equal", adjustable="box")
+    ax.grid(True)
+    ax.legend()
+
+    plt.show()

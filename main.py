@@ -369,9 +369,13 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         Y0_2 = baseY0_2.copy()
         Y0_2[2:4] += V_ign2
 
-        # Use the validated Case II solution returned by the optimizer.
-        # This is the post-flyby arc: t_SOI_out -> R_B.
-        sol2 = best_caseII["sol"]
+        # Reconstruct complete optimal Case II trajectory in two arcs:
+        #   Arc 1: t0 -> t_SOI_out, from the original initial condition.
+        #   Arc 2: t_SOI_out -> t_fin, from the validated post-flyby state.
+        #
+        # The complete one-shot integration is very sensitive around the flyby.
+        # This two-arc reconstruction uses the same post-flyby state validated
+        # by the optimizer.
 
         t_hit2 = t_fin_opt2
         y_hit2 = best_caseII["y_fin"]
@@ -382,33 +386,78 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         print("r_hit2 (km) =", r_hit2)
         print("r_hit2 - R_B (km) =", r_hit2 - float(cts.R_orb_B))
 
-        # Plots of the validated optimal case II post-flyby trajectory
-        t_plot2 = np.linspace(t_SOI_out_opt2, t_hit2, nstep_plot + 1, endpoint=True)
-        dt_plot2 = (t_hit2 - t_SOI_out_opt2) / nstep_plot
+        print("\nPlotting complete optimum trajectory and errors for case II...")
 
-        sol_plot2 = solve_ivp(
+        # Full time vector for the complete plotted trajectory.
+        t_plot2 = np.linspace(t0, t_hit2, nstep_plot + 1, endpoint=True)
+        dt_plot2 = (t_hit2 - t0) / nstep_plot
+
+        mask_pre2 = t_plot2 <= t_SOI_out_opt2
+        mask_post2 = t_plot2 > t_SOI_out_opt2
+
+        t_plot2_pre = t_plot2[mask_pre2]
+        t_plot2_post = t_plot2[mask_post2]
+
+        # ---------- Nominal trajectory ----------
+        sol_pre2 = solve_ivp(
             F,
-            (t_SOI_out_opt2, t_hit2),
-            best_caseII["Y_SOI_out"],
-            t_eval=t_plot2,
+            (t0, t_SOI_out_opt2),
+            Y0_2,
+            t_eval=t_plot2_pre,
             method="DOP853",
             atol=atol,
             rtol=rtol,
         )
 
-        sol_plot2_ref = solve_ivp(
+        sol_post2 = solve_ivp(
             F,
             (t_SOI_out_opt2, t_hit2),
             best_caseII["Y_SOI_out"],
-            t_eval=t_plot2,
+            t_eval=t_plot2_post,
+            method="DOP853",
+            atol=atol,
+            rtol=rtol,
+        )
+
+        Y_plot2 = np.zeros((4, len(t_plot2)))
+        Y_plot2[:, mask_pre2] = sol_pre2.y
+        Y_plot2[:, mask_post2] = sol_post2.y
+
+        # ---------- Reference trajectory ----------
+        sol_pre2_ref = solve_ivp(
+            F,
+            (t0, t_SOI_out_opt2),
+            Y0_2,
+            t_eval=t_plot2_pre,
             method="DOP853",
             atol=atol_ref,
             rtol=rtol_ref,
         )
 
-        print("\nPlotting optimum post-flyby trajectory and errors for case II...")
-        plotter.plot_solution(sol_plot2.t, sol_plot2.y, sol_plot2_ref.y)
-        plotter.plot2D(sol_plot2.t, dt_plot2, sol_plot2.y, R)
+        sol_post2_ref = solve_ivp(
+            F,
+            (t_SOI_out_opt2, t_hit2),
+            best_caseII["Y_SOI_out"],
+            t_eval=t_plot2_post,
+            method="DOP853",
+            atol=atol_ref,
+            rtol=rtol_ref,
+        )
+
+        Y_plot2_ref = np.zeros((4, len(t_plot2)))
+        Y_plot2_ref[:, mask_pre2] = sol_pre2_ref.y
+        Y_plot2_ref[:, mask_post2] = sol_post2_ref.y
+
+        plotter.plot_solution(t_plot2, Y_plot2, Y_plot2_ref)
+        plotter.plot2D(t_plot2, dt_plot2, Y_plot2, R)
+        plotter.plot2D_caseII(
+            t_plot2,
+            Y_plot2,
+            R,
+            t_SOI_in_opt2,
+            t_SOI_out_opt2,
+            t_MED_opt2,
+        )
 
         # Case I vs Case II
         dv_saving = dv_tot_opt1 - dv_tot_opt2
