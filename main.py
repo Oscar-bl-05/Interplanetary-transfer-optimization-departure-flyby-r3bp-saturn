@@ -315,29 +315,61 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         print("\nNo valid Case II solution found.")
 
     else:
+        theta_opt2 = float(best_caseII["theta"])
+        dv_ign_opt2 = float(best_caseII["dv_ign"])
+        dv_fin_opt2 = float(best_caseII["dv_fin"])
+        dv_tot_opt2 = float(best_caseII["dv_tot"])
+        t_fin_opt2 = float(best_caseII["t_fin"])
+
+        resonance_n_opt2 = int(best_caseII["resonance_n"])
+        resonance_n_earth_opt2 = int(best_caseII["resonance_n_earth"])
+
+        t_SOI_in_opt2 = float(best_caseII["t_SOI_in"])
+        t_SOI_out_opt2 = float(best_caseII["t_SOI_out"])
+        MED_opt2 = float(best_caseII["MED"])
+        minimum_altitude_opt2 = float(best_caseII["minimum_altitude"])
+        t_MED_opt2 = float(best_caseII["t_MED"])
+
+        energy_before_opt2 = float(best_caseII["energy_before"])
+        energy_after_opt2 = float(best_caseII["energy_after"])
+        energy_gain_opt2 = float(best_caseII["energy_gain"])
+        r_apo_after_opt2 = float(best_caseII["r_apo_after"])
+
+
         print("\n--- OPTIMUM (Case II) ---")
-        print(f"resonance = {best_caseII["resonance_n"]}:{best_caseII["resonance_n_earth"]}")
-        print("theta_opt_II (rad) =", float(best_caseII["theta"]))
-        print("dv_ign_opt_II (km/s) =", float(best_caseII["dv_ign"]))
-        print("dv_fin_opt_II (km/s) =", float(best_caseII["dv_fin"]))
-        print("dv_tot_opt_II (km/s) =", float(best_caseII["dv_tot"]))
-        print("t_fin_opt_II (years) =", float(best_caseII["t_fin"]) / cts.year2seconds)
+        print("resonance =", f"{resonance_n_opt2}:{resonance_n_earth_opt2}")
+        print("theta_opt2 (rad) =", theta_opt2)
+        print("dv_ign_opt2 (km/s) =", dv_ign_opt2)
+        print("dv_fin_opt2 (km/s) =", dv_fin_opt2)
+        print("dv_tot_opt2 (km/s) =", dv_tot_opt2)
+        print("t_fin_opt2 (years) =", t_fin_opt2 / cts.year2seconds)
 
-        print("\n--- EARTH FLYBY CHECK ---")
-        print("t_SOI_in (years) =", float(best_caseII["t_SOI_in"]) / cts.year2seconds)
-        print("t_SOI_out (years) =", float(best_caseII["t_SOI_out"]) / cts.year2seconds)
-        print("minimum Earth distance after departure (km) =", float(best_caseII["MED"]))
-        print("minimum altitude over Earth (km) =", float(best_caseII["minimum_altitude"]))
-        print("time of closest Earth return (years) =", float(best_caseII["t_MED"]) / cts.year2seconds)
-        print("Earth SOI radius (km) =", cts.earth_SOI_radius)
-        print("inside Earth SOI ? =", best_caseII["MED"] < cts.earth_SOI_radius)
-        print("above Earth surface ? =", best_caseII["MED"] > cts.R_Earth)
-        print("dv_ign_II < deltaV_ignI ? =", best_caseII["dv_ign"] < float(analitical.deltaV_ignI))
+        print("\n--- CASE II flyby checks ---")
+        print("t_SOI_in (years) =", t_SOI_in_opt2 / cts.year2seconds)
+        print("t_SOI_out (years) =", t_SOI_out_opt2 / cts.year2seconds)
+        print("minimum Earth distance MED (km) =", MED_opt2)
+        print("minimum flyby altitude (km) =", minimum_altitude_opt2)
+        print("t_MED (years) =", t_MED_opt2 / cts.year2seconds)
 
-        print("\n--- FLYBY ENERGY CHECK ---")
-        print("heliocentric energy before (km^2/s^2) =", best_caseII["energy_before"])
-        print("heliocentric energy after (km^2/s^2) =", best_caseII["energy_after"])
-        print("energy gain (km^2/s^2) =", best_caseII["energy_gain"])
-        print("post-flyby aphelion (Gm) =", best_caseII["r_apo_after"]/1000000)
+        print("\n--- CASE II energy checks ---")
+        print("energy_before (km^2/s^2) =", energy_before_opt2)
+        print("energy_after (km^2/s^2) =", energy_after_opt2)
+        print("energy_gain (km^2/s^2) =", energy_gain_opt2)
+        print("r_apo_after (km) =", r_apo_after_opt2)
 
+        # Case I vs Case II
 
+        dv_saving = dv_tot_opt1 - dv_tot_opt2
+        relative_saving = 100.0 * dv_saving / dv_tot_opt1
+        extra_time = t_fin_opt2 - t_fin_opt1
+
+        print("\n--- FINAL COMPARISON: CASE I vs CASE II ---")
+        print("dv_tot_I (km/s) =", dv_tot_opt1)
+        print("dv_tot_II (km/s) =", dv_tot_opt2)
+        print("dv saving I-II (m/s) =", 1000.0 * dv_saving)
+        print("relative saving (%) =", relative_saving)
+        print("t_fin_I (years) =", t_fin_opt1 / cts.year2seconds)
+        print("t_fin_II (years) =", t_fin_opt2 / cts.year2seconds)
+        print("extra time Case II - Case I (years) =", extra_time / cts.year2seconds)
+        print("dv_ign_II < dv_ign_I optimized ? =", dv_ign_opt2 < dv_ign_opt1)
+        print("dv_tot_II < dv_tot_I optimized ? =", dv_tot_opt2 < dv_tot_opt1)
