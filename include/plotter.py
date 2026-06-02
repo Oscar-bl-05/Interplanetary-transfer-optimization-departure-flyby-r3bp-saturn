@@ -79,11 +79,8 @@ def plot_solution(t, Y, Y_ref): # Plot variables and errors
 
     plt.show()
 
+#Plot the complete optimized Case II trajectory
 def plot2D_caseII(t, Y, R_f, t_SOI_in=None, t_SOI_out=None, t_MED=None):
-    """
-    Plot the complete optimized Case II trajectory
-    in a single heliocentric figure.
-    """
 
     x = Y[0, :]
     y = Y[1, :]
@@ -123,6 +120,78 @@ def plot2D_caseII(t, Y, R_f, t_SOI_in=None, t_SOI_out=None, t_MED=None):
     ax.set_ylabel("y [km]")
     ax.set_aspect("equal", adjustable="box")
     ax.grid(True)
+    ax.legend()
+
+    plt.show()
+
+def plot_distances(t, Y, R_f, title="", t_SOI_in=None, t_SOI_out=None, t_MED=None):
+
+    x = Y[0, :]
+    y = Y[1, :]
+
+    t_years = t / cts.year2seconds
+
+    # Distance to Sun
+    r_sun = np.hypot(x, y)
+
+    # Earth / planet A position with the same phase convention as main.py
+    earth_pos = np.array([R_f(ti, cts.R_orb_A, cts.frec_A) for ti in t])
+    earth_x = earth_pos[:, 0]
+    earth_y = earth_pos[:, 1]
+
+    # Distance to Earth / planet A
+    d_earth = np.hypot(x - earth_x, y - earth_y)
+
+    fig, axes = plt.subplots(
+        nrows=2,
+        ncols=1,
+        figsize=(10, 8),
+        constrained_layout=True,
+    )
+
+    # Distance to Sun
+    ax = axes[0]
+
+    ax.plot(t_years, r_sun, linewidth=1.2, label="r(t)")
+    ax.axhline(cts.R_orb_A, linestyle="--", linewidth=1.0, label="Earth orbit radius")
+    ax.axhline(cts.R_orb_B, linestyle="--", linewidth=1.0, label="Saturn orbit radius")
+
+    if t_SOI_in is not None:
+        ax.axvline(t_SOI_in / cts.year2seconds, linestyle=":", linewidth=1.0, label="SOI entry")
+
+    if t_SOI_out is not None:
+        ax.axvline(t_SOI_out / cts.year2seconds, linestyle=":", linewidth=1.0, label="SOI exit")
+
+    if t_MED is not None:
+        ax.axvline(t_MED / cts.year2seconds, linestyle="-.", linewidth=1.0, label="Closest Earth approach")
+
+    ax.set_title(title + " - distance to Sun")
+    ax.set_xlabel("time [years]")
+    ax.set_ylabel("r(t) [km]")
+    ax.grid(True)
+    ax.legend()
+
+    # Distance to Earth / planet A
+    ax = axes[1]
+
+    ax.plot(t_years, d_earth, linewidth=1.2, label="|r(t) - R_Earth(t)|")
+    ax.axhline(cts.R_Earth, linestyle="--", linewidth=1.0, label="Earth radius")
+    ax.axhline(cts.earth_SOI_radius, linestyle="--", linewidth=1.0, label="Earth SOI radius")
+
+    if t_SOI_in is not None:
+        ax.axvline(t_SOI_in / cts.year2seconds, linestyle=":", linewidth=1.0, label="SOI entry")
+
+    if t_SOI_out is not None:
+        ax.axvline(t_SOI_out / cts.year2seconds, linestyle=":", linewidth=1.0, label="SOI exit")
+
+    if t_MED is not None:
+        ax.axvline(t_MED / cts.year2seconds, linestyle="-.", linewidth=1.0, label="Closest Earth approach")
+
+    ax.set_yscale("log")
+    ax.set_title(title + " - distance to Earth")
+    ax.set_xlabel("time [years]")
+    ax.set_ylabel("|r(t) - R_Earth(t)| [km]")
+    ax.grid(True, which="both")
     ax.legend()
 
     plt.show()

@@ -186,9 +186,10 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
 
     plotter.plot_solution(sol_plot.t, sol_plot.y, sol_plot_ref.y)
     plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
+    plotter.plot_distances(sol_plot.t, sol_plot.y, R, title="Case I optimum",)
+
 
 #### #### CASE II #### ####
-
 
 def check_initial_guess(resonance):
     tf2 = resonance["T_transfer_case_II"]
@@ -369,14 +370,7 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         Y0_2 = baseY0_2.copy()
         Y0_2[2:4] += V_ign2
 
-        # Reconstruct complete optimal Case II trajectory in two arcs:
-        #   Arc 1: t0 -> t_SOI_out, from the original initial condition.
-        #   Arc 2: t_SOI_out -> t_fin, from the validated post-flyby state.
-        #
-        # The complete one-shot integration is very sensitive around the flyby.
-        # This two-arc reconstruction uses the same post-flyby state validated
-        # by the optimizer.
-
+        # Reconstruct complete optimal Case II trajectory
         t_hit2 = t_fin_opt2
         y_hit2 = best_caseII["y_fin"]
         r_hit2 = float(np.hypot(y_hit2[0], y_hit2[1]))
@@ -450,15 +444,8 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
 
         plotter.plot_solution(t_plot2, Y_plot2, Y_plot2_ref)
         plotter.plot2D(t_plot2, dt_plot2, Y_plot2, R)
-        plotter.plot2D_caseII(
-            t_plot2,
-            Y_plot2,
-            R,
-            t_SOI_in_opt2,
-            t_SOI_out_opt2,
-            t_MED_opt2,
-        )
-
+        plotter.plot2D_caseII(t_plot2, Y_plot2, R, t_SOI_in_opt2, t_SOI_out_opt2, t_MED_opt2)
+        plotter.plot_distances(t_plot2, Y_plot2, R, title="Case II optimum", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
         # Case I vs Case II
         dv_saving = dv_tot_opt1 - dv_tot_opt2
         relative_saving = 100.0 * dv_saving / dv_tot_opt1
