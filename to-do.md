@@ -91,7 +91,7 @@
 13. check (n_refines = 2)
 14. check (n_refines = 0 para debuggear, cambiar)
 15. check
-16. revisar caso II
+16. check
 17. falta centrada en la Tierra
 18. check
 19. check
