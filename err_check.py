@@ -4,6 +4,7 @@ from include import cts, analitical, IC
 from include.optimizer import optimize_case_II_resonance_sweep
 
 ### CASE I ###
+print("\n### CASE I ###\n")
 k_test = 1  # asegurar que llega a R_B
 theta_test = -0.4814677511186809
 dv_test = 7.322992225754916
