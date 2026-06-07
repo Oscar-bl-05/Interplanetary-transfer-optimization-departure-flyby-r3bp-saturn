@@ -32,7 +32,7 @@ opt2_n_grid_deltav=20 #number of deltaV values to scan in the case II optimizati
 opt2_n_grid_theta=10 #number of theta values to scan in the case II optimization
 opt2_n_refines=0 #number of refinements in case II optimization
 
-def R(t, R_orb, frec):
+def R(t, R_orb, frec):  # returns the position of a planet in a given t
     return np.array([
         R_orb * np.cos(frec * t - IC.delta0),
         R_orb * np.sin(frec * t - IC.delta0),

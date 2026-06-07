@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from . import cts, orbital_elements
+from . import cts, analitical
 
 def plot2D(t, dt, Y, R_f): # Plot 2D animation
 
@@ -218,7 +218,7 @@ def plot_orbital_elements(t, Y, R_f, center="sun", title="", t_SOI_in=None, t_SO
         t_plot = t
         Y_plot = Y
 
-    elements = orbital_elements.compute_planar_orbital_elements(
+    elements = analitical.compute_planar_orbital_elements(
         t=t_plot,
         Y=Y_plot,
         R_f=R_f,
