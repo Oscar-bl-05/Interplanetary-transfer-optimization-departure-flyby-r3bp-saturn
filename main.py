@@ -32,7 +32,7 @@ opt2_n_grid_deltav=20 #number of deltaV values to scan in the case II optimizati
 opt2_n_grid_theta=10 #number of theta values to scan in the case II optimization
 opt2_n_refines=0 #number of refinements in case II optimization
 
-def R(t, R_orb, frec):  # returns the position of a planet in a given t
+def R(t, R_orb, frec):
     return np.array([
         R_orb * np.cos(frec * t - IC.delta0),
         R_orb * np.sin(frec * t - IC.delta0),
@@ -185,6 +185,8 @@ if input("Run case I optimization (Y/n):\n") in ["Y","y"]:
 
     plotter.plot_solution(sol_plot.t, sol_plot.y, sol_plot_ref.y)
     plotter.plot2D(sol_plot.t, dt_plot, sol_plot.y, R)
+    plotter.plot_heliocentric_trajectory(sol_plot.t, sol_plot.y, R, title="Case I optimum - heliocentric trajectory")
+    plotter.plot_geocentric_trajectory(sol_plot.t, sol_plot.y, R, title="Case I optimum - Earth-centered trajectory")
     plotter.plot_distances(sol_plot.t, sol_plot.y, R, title="Case I optimum",)
     plotter.plot_orbital_elements(sol_plot.t, sol_plot.y, R, center="sun", title="Case I optimum - heliocentric elements")
     plotter.plot_orbital_elements(sol_plot.t, sol_plot.y, R, center="earth", title="Case I optimum - Earth-relative departure elements", time_window=(t0, 0.20 * cts.year2seconds))
@@ -444,6 +446,8 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
 
         plotter.plot_solution(t_plot2, Y_plot2, Y_plot2_ref)
         plotter.plot2D(t_plot2, dt_plot2, Y_plot2, R)
+        plotter.plot_heliocentric_trajectory(t_plot2, Y_plot2, R, title="Case II optimum - heliocentric trajectory", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
+        plotter.plot_geocentric_trajectory(t_plot2, Y_plot2, R, title="Case II optimum - Earth-centered trajectory", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
         plotter.plot2D_caseII(t_plot2, Y_plot2, R, t_SOI_in_opt2, t_SOI_out_opt2, t_MED_opt2)
         plotter.plot_distances(t_plot2, Y_plot2, R, title="Case II optimum", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
         plotter.plot_orbital_elements(t_plot2, Y_plot2, R, center="sun", title="Case II optimum - heliocentric elements", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2)
