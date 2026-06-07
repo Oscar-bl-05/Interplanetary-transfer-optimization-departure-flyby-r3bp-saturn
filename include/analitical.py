@@ -118,8 +118,7 @@ theta_0II = _default_caseII["theta_0II"]
 T_transfer_case_II = _default_caseII["T_transfer_case_II"]
 
 
-
-####### Obtener elementos orbitales
+####### Obtener elementos orbitales (para plotear)
 
 def compute_planar_orbital_elements(t, Y, R_f=None, center="sun"):
 

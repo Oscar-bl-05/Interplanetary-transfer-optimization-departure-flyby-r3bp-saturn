@@ -82,21 +82,21 @@
 4. check
 5. check
 6. check
-7. check (revisar caso II)
+7. check 
 8. check
 9. check
 10. check
 11. check
 12. check
-13. check (n_refines = 2)
-14. check (n_refines = 0 para debuggear, cambiar)
+13. check 
+14. check
 15. check
 16. check
-17. falta centrada en la Tierra
+17. check
 18. check
 19. check
-20. pendiente
-21. pendiente
-22. pendiente
+20. check
+21. check
+22. check
 
 ---

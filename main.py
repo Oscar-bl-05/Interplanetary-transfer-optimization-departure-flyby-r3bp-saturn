@@ -23,14 +23,14 @@ nstep_opt2 = 800*4
 nstep_plot = 4000
 
 opt1_n_grid = 10 #number of values to scan in the case I optimization
-opt1_n_refines = 1 #number of refinements in case I optimization
+opt1_n_refines = 4 #number of refinements in case I optimization
 
 min_flyby_altitude_km = 300 # minimum desired altitude above Earth's surface in flyby to prevent aerodynamic drag
 
-n_earth_values=[12] #list of resonances (years) values to test ### to speed up code execution only the value 12 is selected, but in reality the optimization was done with 2...12
-opt2_n_grid_deltav=20 #number of deltaV values to scan in the case II optimization
-opt2_n_grid_theta=10 #number of theta values to scan in the case II optimization
-opt2_n_refines=0 #number of refinements in case II optimization
+n_earth_values = [12] #list of resonances (years) values to test ### to speed up code execution only the value 12 is selected, but in reality the optimization was done with 2...12
+opt2_n_grid_deltav = 10 #number of deltaV values to scan in the case II optimization
+opt2_n_grid_theta = 10 #number of theta values to scan in the case II optimization
+opt2_n_refines = 4 #number of refinements in case II optimization
 
 def R(t, R_orb, frec):
     return np.array([
@@ -454,17 +454,23 @@ if input("Run case II optimization (Y/n):\n") in ["Y","y"]:
         plotter.plot_orbital_elements(t_plot2, Y_plot2, R, center="earth", title="Case II optimum - Earth-relative flyby elements", t_SOI_in=t_SOI_in_opt2, t_SOI_out=t_SOI_out_opt2, t_MED=t_MED_opt2, time_window=(t_SOI_in_opt2 - 0.15 * cts.year2seconds, t_SOI_out_opt2 + 0.15 * cts.year2seconds))
 
         # Case I vs Case II
-        dv_saving = dv_tot_opt1 - dv_tot_opt2
-        relative_saving = 100.0 * dv_saving / dv_tot_opt1
-        extra_time = t_fin_opt2 - t_fin_opt1
+        try:
+            dv_saving = dv_tot_opt1 - dv_tot_opt2
+            relative_saving = 100.0 * dv_saving / dv_tot_opt1
+            extra_time = t_fin_opt2 - t_fin_opt1
 
-        print("\n--- FINAL COMPARISON: CASE I vs CASE II ---")
-        print("dv_tot_I (km/s) =", dv_tot_opt1)
-        print("dv_tot_II (km/s) =", dv_tot_opt2)
-        print("dv saving I-II (m/s) =", 1000.0 * dv_saving)
-        print("relative saving (%) =", relative_saving)
-        print("t_fin_I (years) =", t_fin_opt1 / cts.year2seconds)
-        print("t_fin_II (years) =", t_fin_opt2 / cts.year2seconds)
-        print("extra time Case II - Case I (years) =", extra_time / cts.year2seconds)
-        print("dv_ign_II < dv_ign_I optimized ? =", dv_ign_opt2 < dv_ign_opt1)
-        print("dv_tot_II < dv_tot_I optimized ? =", dv_tot_opt2 < dv_tot_opt1)
+            print("\n--- FINAL COMPARISON: CASE I vs CASE II ---")
+            print("dv_tot_I (km/s) =", dv_tot_opt1)
+            print("dv_tot_II (km/s) =", dv_tot_opt2)
+            print("dv saving I-II (m/s) =", 1000.0 * dv_saving)
+            print("relative saving (%) =", relative_saving)
+            print("t_fin_I (years) =", t_fin_opt1 / cts.year2seconds)
+            print("t_fin_II (years) =", t_fin_opt2 / cts.year2seconds)
+            print("extra time Case II - Case I (years) =", extra_time / cts.year2seconds)
+            print("dv_ign_II < dv_ign_I optimized ? =", dv_ign_opt2 < dv_ign_opt1)
+            print("dv_tot_II < dv_tot_I optimized ? =", dv_tot_opt2 < dv_tot_opt1)
+        except:
+            print("could not compare case I and II")
+
+print("\n --- Execution ended ---\n")
+

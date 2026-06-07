@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from include import cts, analitical, IC, plotter
+from include import cts, analitical, IC
 
 
 def optimize_case_I(
